@@ -1,0 +1,26 @@
+<div class="list-group">
+  {% if not logged %}
+  <a href="{{ login }}" class="list-group-item">{{ text_login }}</a> <a href="{{ register }}" class="list-group-item">{{ text_register }}</a> <a href="{{ forgotten }}" class="list-group-item">{{ text_forgotten }}</a>
+  {% endif %}
+
+  {% if logged %}
+    <h4><b>{{ last_name }} {{ first_name }}</b></h4>
+    <a href="{{ edit }}" class="list-group-item">{{ text_edit }}</a>
+  {% endif %}
+
+  <h4><b>{{ text_personal_info }}</b></h4>
+  <a href="{{ statistic }}" class="list-group-item">{{ text_statistic }}</a>
+  <a href="{{ recently_viewed }}" class="list-group-item">{{ text_recently_viewed }}</a>
+  <a href="{{ support }}" class="list-group-item">{{ text_support }}</a>
+  <a href="{{ faq }}" class="list-group-item">{{ text_faq }}</a>
+  <a href="{{ subscriptions }}" class="list-group-item">{{ text_subscriptions }}</a>
+  <a href="{{ voucher }}" class="list-group-item">{{ text_voucher }}</a>
+
+  <h4><b>{{ text_orders }}</b></h4>
+  <a href="{{ cart }}" class="list-group-item">{{ text_cart }}</a>
+  <a href="{{ order }}" class="list-group-item">{{ text_order }}</a>
+  <a href="{{ return }}" class="list-group-item">{{ text_return }}</a>
+
+  <h4><b>{{ text_review }}</b></h4>
+  <a href="{{ review }}" class="list-group-item">{{ text_review }}</a>
+</div>

@@ -5,6 +5,7 @@ class ControllerExtensionModuleAccount extends Controller {
 
 		$data['logged'] = $this->customer->isLogged();
 		$data['first_name'] = $this->customer->getFirstName();
+		$data['first_letter_name'] = isset($data['first_name']) ? mb_substr($data['first_name'],0,1,'utf-8') : '';
 		$data['last_name'] = $this->customer->getLastName();
 		$data['register'] = $this->url->link('account/register', '', true);
 		$data['login'] = $this->url->link('account/login', '', true);

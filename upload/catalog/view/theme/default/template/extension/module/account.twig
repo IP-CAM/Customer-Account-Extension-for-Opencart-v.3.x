@@ -1,9 +1,29 @@
+<style>
+  .user-info {
+    display: flex;
+  }
+  .user-info .user-info-name {
+    display: inline-block;
+    width: 153px;
+    height: 153px;
+    line-height: 153px;
+    border-radius: 50%;
+    text-align: center;
+    color: white;
+    font-size: 52px;
+    font-weight: 700;
+    background-color: #C7DDE6;
+  }
+</style>
 <div class="list-group">
   {% if not logged %}
   <a href="{{ login }}" class="list-group-item">{{ text_login }}</a> <a href="{{ register }}" class="list-group-item">{{ text_register }}</a> <a href="{{ forgotten }}" class="list-group-item">{{ text_forgotten }}</a>
   {% endif %}
 
   {% if logged %}
+    <div class="user-info">
+      <div class="user-info-name" id="name">{{ first_letter_name }}</div>
+    </div>
     <h4><b>{{ last_name }} {{ first_name }}</b></h4>
     <a href="{{ edit }}" class="list-group-item">{{ text_edit }}</a>
   {% endif %}

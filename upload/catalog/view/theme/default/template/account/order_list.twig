@@ -1,0 +1,156 @@
+{{ header }}
+<style>
+  .my-orders-top-row {
+    display: flex;
+  }
+  .order-years-row {
+    display: flex;
+    margin: 10px 0;
+    width: 50%;
+  }
+  .order-year {
+    font-size: 12px;
+    background-color: #fff;
+    border: 1px solid #C7DDE6;
+    border-radius: 5px;
+    padding: 5px 10px;
+    display: flex;
+    margin-right: 5px;
+  }
+  .order-year.active {
+    border: 2px solid #19AEB2;
+  }
+  .sort-row {
+    display: flex;
+    width: 50%;
+    margin: 10px 0;
+    justify-content: flex-end;
+  }
+  .sort-row select {
+    width: fit-content;
+  }
+
+  .order-block {
+    border: 1px solid #C7DDE6;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    padding: 20px;
+  }
+
+  .order-block-header, .order-block-body {
+    display: flex;
+    justify-content: space-between;
+  }
+  .order-btn {
+    background: #FFFFFF;
+    box-shadow: 0px 1px 6px rgba(125, 173, 192, 0.25);
+    border-radius: 40px;
+    border: none;
+    margin: 5px 0;
+    padding: 5px 10px;
+    font-weight: 600;
+    font-size: 13px;
+    line-height: 17px;
+    color: #01999D;
+  }
+  .order-block-body-right {
+    display: flex;
+    flex-direction: column;
+  }
+</style>
+<div id="account-order" class="container">
+  <ul class="breadcrumb">
+    {% for breadcrumb in breadcrumbs %}
+    <li><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+    {% endfor %}
+  </ul>
+  <div class="row">{{ column_left }}
+    {% if column_left and column_right %}
+    {% set class = 'col-sm-6' %}
+    {% elseif column_left or column_right %}
+    {% set class = 'col-sm-9' %}
+    {% else %}
+    {% set class = 'col-sm-12' %}
+    {% endif %}
+    <div id="content" class="{{ class }}">{{ content_top }}
+      <h1>{{ heading_title }}</h1>
+      <span>{{ count_orders }}</span>
+      <div class="my-orders-top-row">
+        {% if years %}
+          <div class="order-years-row">
+            {% for year in years %}
+              <a href="{{ link_year }}&year={{ year }}" class="order-year {% if year == selected_year %}active{% endif %}">{{ year }}</a>
+            {% endfor %}
+          </div>
+        {% endif %}
+        <div class="sort-row">
+          <select name="orders_sort" id="select-orders-sort" class="form-control" onchange="location = this.value;">
+            {% for sorts in sorts %}
+              {% if sorts.value == '%s-%s'|format(sort, order) %}
+
+                <option value="{{ sorts.href }}" selected="selected">{{ sorts.text }}</option>
+
+              {% else %}
+
+                <option value="{{ sorts.href }}">{{ sorts.text }}</option>
+
+              {% endif %}
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      {% if orders %}
+        {% for order in orders %}
+
+          <div class="order-block">
+            <div class="order-block-header">
+              <div class="order-block-header-left">
+                <span>{{ order.status }}</span><br>
+                <span>Адрес: ул. Заставская 21к1</span>
+              </div>
+              <div class="order-block-header-right">
+                <span><b>{{ order.total }}</b></span>
+              </div>
+            </div>
+            <div class="order-block-body">
+              <div class="order-block-body-left">
+                {% for product in order.products %}
+                  <div class="order-product-block">
+                    <img src="{{ product.image }}" alt="">
+                    {{ product.name }}
+                    {{ product.quantity }}
+                    <button class="order-btn" onclick="cart.add('{{ product.product_id }}');">Купить</button>
+                  </div>
+                {% endfor %}
+              </div>
+              <div class="order-block-body-right">
+                <button class="order-btn">Повторить заказ</button>
+                <button class="order-btn">Оценить доставку</button>
+                <button class="order-btn">Написать в поддержку</button>
+              </div>
+            </div>
+          </div>
+
+{#          <tr>#}
+{#            <td class="text-right">#{{ order.order_id }}</td>#}
+{#            <td class="text-left">{{ order.name }}</td>#}
+{#            <td class="text-right">{{ order.products }}</td>#}
+{#            <td class="text-left">{{ order.status }}</td>#}
+{#            <td class="text-right">{{ order.total }}</td>#}
+{#            <td class="text-left">{{ order.date_added }}</td>#}
+{#            <td class="text-right"><a href="{{ order.view }}" data-toggle="tooltip" title="{{ button_view }}" class="btn btn-info"><i class="fa fa-eye"></i></a></td>#}
+{#          </tr>#}
+
+        {% endfor %}
+
+        <div class="row">
+          <div class="col-sm-6 text-left">{{ pagination }}</div>
+          <div class="col-sm-6 text-right">{{ results }}</div>
+        </div>
+      {% else %}
+      <p>{{ text_empty }}</p>
+      {% endif %}
+      {{ content_bottom }}</div>
+    {{ column_right }}</div>
+</div>
+{{ footer }}

@@ -140,10 +140,10 @@ class ModelAccountOrder extends Model {
 		return $query->rows;
 	}
 
-    public function getProductImage($product_id) {
-        $query = $this->db->query("SELECT `image` FROM " . DB_PREFIX . "product WHERE product_id = '" . (int)$product_id . "'");
+    public function getProductInfo($product_id) {
+        $query = $this->db->query("SELECT p.image AS image, p.weight AS weight, wcd.unit AS weight_unit FROM " . DB_PREFIX . "product p LEFT JOIN " . DB_PREFIX . "weight_class_description wcd ON (p.weight_class_id = wcd.weight_class_id) WHERE p.product_id = '" . (int)$product_id . "'");
 
-        return $query->row['image'];
+        return $query->row;
     }
 
 	public function getOrderProduct($order_id, $order_product_id) {

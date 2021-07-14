@@ -34,13 +34,17 @@
     border: 1px solid #C7DDE6;
     border-radius: 5px;
     margin-bottom: 20px;
-    padding: 20px;
   }
 
-  .order-block-header, .order-block-body {
+  .order-block-header, .order-block-body, .order-block-footer {
     display: flex;
     justify-content: space-between;
+    padding: 20px;
   }
+  .order-block-header {
+    background-color: #F8F8F8;
+  }
+
   .order-btn {
     background: #FFFFFF;
     box-shadow: 0px 1px 6px rgba(125, 173, 192, 0.25);
@@ -56,6 +60,12 @@
   .order-block-body-right {
     display: flex;
     flex-direction: column;
+  }
+  .order-block-body-left {
+    width: 75%;
+  }
+  .order-product-block {
+    border-bottom: 1px solid #E5F1F6;
   }
 </style>
 <div id="account-order" class="container">
@@ -116,9 +126,11 @@
               <div class="order-block-body-left">
                 {% for product in order.products %}
                   <div class="order-product-block">
-                    <img src="{{ product.image }}" alt="">
-                    {{ product.name }}
-                    {{ product.quantity }}
+                    <img src="{{ product.thumb }}" style="width: fit-content;" alt="">
+                    <div style="width: fit-content; display: inline-block;">
+                      <b>{{ product.name }}</b> <br>
+                      {{ product.quantity }} шт ({{ product.weight|round }}{{ product.weight_unit }})
+                    </div>
                     <button class="order-btn" onclick="cart.add('{{ product.product_id }}');">Купить</button>
                   </div>
                 {% endfor %}
@@ -128,6 +140,9 @@
                 <button class="order-btn">Оценить доставку</button>
                 <button class="order-btn">Написать в поддержку</button>
               </div>
+            </div>
+            <div class="order-block-footer">
+              <span>Заказ от {{ order.date_added }}</span>
             </div>
           </div>
 

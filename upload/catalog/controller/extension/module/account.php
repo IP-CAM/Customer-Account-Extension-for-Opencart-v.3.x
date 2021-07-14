@@ -5,7 +5,7 @@ class ControllerExtensionModuleAccount extends Controller {
 
 		$data['logged'] = $this->customer->isLogged();
 		$data['first_name'] = $this->customer->getFirstName();
-		$data['first_letter_name'] = isset($data['first_name']) ? mb_substr($data['first_name'],0,1,'utf-8') : '';
+		$data['first_letter_name'] = isset($data['first_name']) ? strtoupper(mb_substr($data['first_name'],0,1,'utf-8')) : '';
 		$data['last_name'] = $this->customer->getLastName();
 		$data['register'] = $this->url->link('account/register', '', true);
 		$data['login'] = $this->url->link('account/login', '', true);
@@ -30,7 +30,7 @@ class ControllerExtensionModuleAccount extends Controller {
 		$data['recently_viewed'] = $this->url->link('account/recently_viewed', '', true);
 		$data['support'] = $this->url->link('account/support', '', true);
 		$data['faq'] = $this->url->link('account/faq', '', true);
-		$data['subscriptions'] = $this->url->link('account/subscriptions', '', true);
+		$data['subscription'] = $this->url->link('account/subscription', '', true);
 
 		return $this->load->view('extension/module/account', $data);
 	}

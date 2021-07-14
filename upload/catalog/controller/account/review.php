@@ -9,6 +9,10 @@ class ControllerAccountReview extends Controller {
 			$this->response->redirect($this->url->link('account/login', '', true));
 		}
 
+        $this->document->addStyle('catalog/view/javascript/jquery/swiper/css/swiper.min.css');
+        $this->document->addStyle('catalog/view/javascript/jquery/swiper/css/opencart.css');
+        $this->document->addScript('catalog/view/javascript/jquery/swiper/js/swiper.jquery.js');
+
 		$this->load->language('account/review');
 
 		$this->document->setTitle($this->language->get('heading_title'));
@@ -31,12 +35,22 @@ class ControllerAccountReview extends Controller {
 			$url .= '&page=' . $this->request->get['page'];
 		}
 
+        if (isset($this->request->get['sort'])) {
+            $url .= '&sort=' . $this->request->get['sort'];
+        }
+
+        if (isset($this->request->get['order'])) {
+            $url .= '&order=' . $this->request->get['order'];
+        }
+
 		$data['breadcrumbs'][] = array(
 			'text' => $this->language->get('heading_title'),
 			'href' => $this->url->link('account/review', $url, true)
 		);
 
-		$this->load->model('account/return');
+		$this->load->model('account/review');
+
+        $url = '';
 
 		if (isset($this->request->get['page'])) {
 			$page = $this->request->get['page'];
@@ -44,32 +58,109 @@ class ControllerAccountReview extends Controller {
 			$page = 1;
 		}
 
-//		$data['reviews'] = array();
-//
-//		$return_total = $this->model_account_return->getTotalReturns();
-//
-//		$results = $this->model_account_return->getReturns(($page - 1) * 10, 10);
-//
-//		foreach ($results as $result) {
-//			$data['reviews'][] = array(
-//				'review_id'  => $result['return_id'],
-//				'order_id'   => $result['order_id'],
-//				'name'       => $result['firstname'] . ' ' . $result['lastname'],
-//				'status'     => $result['status'],
-//				'date_added' => date($this->language->get('date_format_short'), strtotime($result['date_added'])),
-//				'href'       => $this->url->link('account/return/info', 'return_id=' . $result['return_id'] . $url, true)
-//			);
-//		}
+        if (isset($this->request->get['sort'])) {
+            $sort = $this->request->get['sort'];
+        } else {
+            $sort = 'o.date_added';
+        }
 
-//		$pagination = new Pagination();
-//		$pagination->total = $return_total;
-//		$pagination->page = $page;
-//		$pagination->limit = $this->config->get('theme_' . $this->config->get('config_theme') . '_product_limit');
-//		$pagination->url = $this->url->link('account/review', 'page={page}', true);
-//
-//		$data['pagination'] = $pagination->render();
-//
-//		$data['results'] = sprintf($this->language->get('text_pagination'), ($return_total) ? (($page - 1) * $this->config->get('theme_' . $this->config->get('config_theme') . '_product_limit')) + 1 : 0, ((($page - 1) * $this->config->get('theme_' . $this->config->get('config_theme') . '_product_limit')) > ($return_total - $this->config->get('theme_' . $this->config->get('config_theme') . '_product_limit'))) ? $return_total : ((($page - 1) * $this->config->get('theme_' . $this->config->get('config_theme') . '_product_limit')) + $this->config->get('theme_' . $this->config->get('config_theme') . '_product_limit')), $return_total, ceil($return_total / $this->config->get('theme_' . $this->config->get('config_theme') . '_product_limit')));
+        if (isset($this->request->get['order'])) {
+            $order = $this->request->get['order'];
+        } else {
+            $order = 'ASC';
+        }
+
+		$data['reviews'] = array();
+
+		$reviews_total = $this->model_account_review->getTotalReviews();
+
+        $filter_data = array(
+            'sort'               => $sort,
+            'order'              => $order,
+            'start'              => ($page - 1) * 10,
+            'limit'              => 10
+        );
+
+        $results = $this->model_account_review->getReviews($filter_data);
+
+		foreach ($results as $result) {
+			$data['reviews'][] = array(
+				'review_id'  => $result['review_id'],
+				'product_id' => $result['product_id'],
+				'customer_id'=> $result['customer_id'],
+				'author'     => $result['author'],
+				'first_letter_author' => isset($result['author']) ? strtoupper(mb_substr($result['author'],0,1,'utf-8')) : '',
+				'text'       => $result['text'],
+				'rating'     => $result['rating'],
+				'status'     => $result['status'] ? $this->language->get('text_review_published') : $this->language->get('text_review_denied'),
+                'date_added' => date('d', strtotime($result['date_added'])) . ' ' . $this->language->get(date('M', strtotime($result['date_added']))) . ' ' . date('Y', strtotime($result['date_added'])),
+			);
+		}
+
+		$products_without_review = $this->model_account_review->getProductsWithoutReview();
+
+        if (count($products_without_review) == 1) {
+            $data['text_products_waiting_rating'] = sprintf($this->language->get('text_products_waiting_rating_1'), count($products_without_review));
+        } else if(count($products_without_review) == 2) {
+            $data['text_products_waiting_rating'] = sprintf($this->language->get('text_products_waiting_rating_2'), count($products_without_review));
+        } else {
+            $data['text_products_waiting_rating'] = sprintf($this->language->get('text_products_waiting_rating_5'), count($products_without_review));
+        }
+
+        $data['products_waiting_rating'] = array();
+
+
+        $this->load->model('tool/image');
+
+        foreach ($products_without_review as $product) {
+            $data['products_waiting_rating'][] = array(
+                'product_id' => $product['product_id'],
+                'name'       => $product['name'],
+                'quantity'   => $product['quantity'],
+                'total_weight' => ((int)$product['quantity'] * (int)$product['weight']),
+                'weight_unit'=> $product['weight_unit'],
+                'thumb'      => $product['image'] ? $this->model_tool_image->resize($product['image'], 100, 100) : $this->model_tool_image->resize('placeholder.png', 100, 100),
+                'link'       => $this->url->link('product/product', '&product_id=' . $product['product_id']),
+
+            );
+        }
+
+        $url = '';
+
+        if (isset($this->request->get['page'])) {
+            $url .= '&page=' . $this->request->get['page'];
+        }
+
+        if (isset($this->request->get['year'])) {
+            $url .= '&year=' . $this->request->get['year'];
+        }
+
+        $data['sorts'] = array();
+
+        $data['sorts'][] = array(
+            'text'  => $this->language->get('text_date_added_asc'),
+            'value' => 'r.date_added-ASC',
+            'href'  => $this->url->link('account/review', '&sort=r.date_added&order=ASC' . $url)
+        );
+
+        $data['sorts'][] = array(
+            'text'  => $this->language->get('text_date_added_desc'),
+            'value' => 'r.date_added-DESC',
+            'href'  => $this->url->link('account/review', '&sort=r.date_added&order=DESC' . $url)
+        );
+
+        $data['sort'] = $sort;
+        $data['order'] = $order;
+
+		$pagination = new Pagination();
+		$pagination->total = $reviews_total;
+		$pagination->page = $page;
+		$pagination->limit = $this->config->get('theme_' . $this->config->get('config_theme') . '_product_limit');
+		$pagination->url = $this->url->link('account/review', 'page={page}', true);
+
+		$data['pagination'] = $pagination->render();
+
+		$data['results'] = sprintf($this->language->get('text_pagination'), ($reviews_total) ? (($page - 1) * $this->config->get('theme_' . $this->config->get('config_theme') . '_product_limit')) + 1 : 0, ((($page - 1) * $this->config->get('theme_' . $this->config->get('config_theme') . '_product_limit')) > ($reviews_total - $this->config->get('theme_' . $this->config->get('config_theme') . '_product_limit'))) ? $reviews_total : ((($page - 1) * $this->config->get('theme_' . $this->config->get('config_theme') . '_product_limit')) + $this->config->get('theme_' . $this->config->get('config_theme') . '_product_limit')), $reviews_total, ceil($reviews_total / $this->config->get('theme_' . $this->config->get('config_theme') . '_product_limit')));
 
 		$data['continue'] = $this->url->link('account/account', '', true);
 

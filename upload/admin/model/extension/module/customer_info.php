@@ -2,19 +2,29 @@
 class ModelExtensionModuleCustomerInfo extends Model {
 	public function install() {
 		$this->db->query("
-		CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "customer_info` (
-		  `customer_id` INT(11) NOT NULL,
-		  `sex` INT(1) DEFAULT 0,
-		  `delivery_address` VARCHAR(255) NOT NULL,
-		  `delivery_recipient_name` VARCHAR(50) NOT NULL,
-		  `review_name` VARCHAR(255) NOT NULL,
-		  PRIMARY KEY (`customer_id`)
-		) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+            CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "customer_info` (
+              `customer_id` INT(11) NOT NULL,
+              `sex` INT(1) DEFAULT 0,
+              `delivery_address` VARCHAR(255) NOT NULL,
+              `delivery_recipient_name` VARCHAR(50) NOT NULL,
+              `review_name` VARCHAR(255) NOT NULL,
+              PRIMARY KEY (`customer_id`)
+            ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+		");
+
+        $this->db->query("
+            CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "customer_mailings` (
+              `customer_id` INT(11) NOT NULL,
+              `mailings` TEXT NOT NULL,
+              `personal_mailings` TEXT NOT NULL,
+              PRIMARY KEY (`customer_id`)
+            ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 		");
 	}
 
 	public function uninstall() {
 		$this->db->query("DROP TABLE IF EXISTS `" . DB_PREFIX . "customer_info`");
+		$this->db->query("DROP TABLE IF EXISTS `" . DB_PREFIX . "customer_mailings`");
 	}
 
     public function saveCustomerInfo($customer_id, $data) {

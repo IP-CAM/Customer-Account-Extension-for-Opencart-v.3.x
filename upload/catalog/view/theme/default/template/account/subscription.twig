@@ -1,0 +1,105 @@
+{{ header }}
+<style>
+  .mailing-block {
+    border: 1px solid #C7DDE6;
+    box-sizing: border-box;
+    border-radius: 5px;
+    margin-bottom: 20px;
+  }
+  .mailing-block-header {
+    padding: 10px 20px;
+    border-bottom: 1px solid #E5F1F6;
+  }
+  .mailing-block-body {
+    padding: 10px 20px;
+    
+  }
+  .mailing-block-footer {
+    background-color: #F8F8F8;
+    padding: 20px;
+  }
+  .mailing-block-footer button {
+    background: #30C4D2;
+    border-radius: 40px;
+    padding: 7px 14px;
+    border: none;
+    color: #fff;
+  }
+</style>
+<div id="account-subscription" class="container">
+  <ul class="breadcrumb">
+    {% for breadcrumb in breadcrumbs %}
+    <li><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+    {% endfor %}
+  </ul>
+  <div class="row">{{ column_left }}
+    {% if column_left and column_right %}
+    {% set class = 'col-sm-6' %}
+    {% elseif column_left or column_right %}
+    {% set class = 'col-sm-9' %}
+    {% else %}
+    {% set class = 'col-sm-12' %}
+    {% endif %}
+    <div id="content" class="{{ class }}">{{ content_top }}
+      <h1>{{ heading_title }}</h1>
+
+      <div class="mailing-block">
+        <div class="mailing-block-header">
+          <h4>Рассылки</h4>
+        </div>
+        <div class="mailing-block-body">
+          <form action="{{ actionMailings }}" id="form-mailing" method="post" enctype="multipart/form-data">
+            {% for mailing in mailings %}
+              <div>
+                <input type="checkbox" id="{{ mailing.value }}" name="{{ mailing.value }}" {% if mailing.checked %}checked{% endif %}>
+                <label for="{{ mailing.value }}">{{ mailing.name }}</label>
+              </div>
+            {% endfor %}
+          </form>
+        </div>
+        <div class="mailing-block-footer">
+          <button type="submit" form="form-mailing">Отменить подписку</button>
+        </div>
+      </div>
+
+      <div class="mailing-block">
+        <div class="mailing-block-header">
+          <h4>Персональные рассылки</h4>
+        </div>
+        <div class="mailing-block-body">
+          {% for mailing in personal_mailings %}
+            <div class="parent-checkbox-container">
+              <div class="parent-checkbox">
+                <input type="checkbox" id="{{ mailing.value }}" name="{{ mailing.value }}" {% if mailing.checked %}checked{% endif %}>
+                <label for="{{ mailing.value }}">{{ mailing.name }}</label>
+              </div>
+              {% for children in mailing.children %}
+                <div style="margin-left: 20px;">
+                  <input type="checkbox" id="{{ children.value }}" name="{{ children.value }}" {% if children.checked %}checked{% endif %}>
+                  <label for="{{ children.value }}">{{ children.name }}</label>
+                </div>
+              {% endfor %}
+            </div>
+          {% endfor %}
+        </div>
+        <div class="mailing-block-footer">
+          <button>Отменить подписку</button>
+        </div>
+      </div>
+
+      {{ content_bottom }}</div>
+    {{ column_right }}</div>
+</div>
+<script>
+  $('.parent-checkbox-container .parent-checkbox input[type="checkbox"]').on('click', function () {
+    let parent = $(this).parents('.parent-checkbox-container');
+    let status = $(this).prop('checked');
+
+    if (status) {
+        parent.find('input[type="checkbox"]').prop('checked', true)
+    } else {
+        parent.find('input[type="checkbox"]').prop('checked', false)
+    }
+  })
+</script>
+{{ footer }} 

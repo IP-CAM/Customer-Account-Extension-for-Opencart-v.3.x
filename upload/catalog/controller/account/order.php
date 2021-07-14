@@ -110,20 +110,26 @@ class ControllerAccountOrder extends Controller {
 			$products = $this->model_account_order->getOrderProducts($result['order_id']);
 
 			foreach ($products as $k => $product) {
-			    $image = $this->model_account_order->getProductImage($product['product_id']);
-			    if ($image) {
-                    $products[$k]['image'] = $this->model_tool_image->resize($image, 100, 100); ;
+			    $product_info = $this->model_account_order->getProductInfo($product['product_id']);
+
+                if (!empty($product_info)) {
+                    $products[$k] = array_merge($products[$k], $product_info);
+                }
+
+			    if ($product_info['image']) {
+                    $products[$k]['thumb'] = $this->model_tool_image->resize($product_info['image'], 100, 100); ;
                 } else {
-                    $products[$k]['image'] = $this->model_tool_image->resize('placeholder.png', 100, 100);;
+                    $products[$k]['thumb'] = $this->model_tool_image->resize('placeholder.png', 100, 100);;
                 }
             }
 			$voucher_total = $this->model_account_order->getTotalOrderVouchersByOrderId($result['order_id']);
+
 
 			$data['orders'][] = array(
 				'order_id'   => $result['order_id'],
 				'name'       => $result['firstname'] . ' ' . $result['lastname'],
 				'status'     => $result['status'],
-				'date_added' => date($this->language->get('date_format_short'), strtotime($result['date_added'])),
+				'date_added' => date('d', strtotime($result['date_added'])) . ' ' . $this->language->get(date('M', strtotime($result['date_added']))) . ' ' . date('Y', strtotime($result['date_added'])),
 				'products'   => $products,
 				'total'      => $this->currency->format($result['total'], $result['currency_code'], $result['currency_value']),
 				'view'       => $this->url->link('account/order/info', 'order_id=' . $result['order_id'], true),

@@ -63,7 +63,7 @@ class ControllerAccountOrder extends Controller {
         if (isset($this->request->get['order'])) {
             $order = $this->request->get['order'];
         } else {
-            $order = 'ASC';
+            $order = 'DESC';
         }
 
         if (isset($this->request->get['year'])) {
@@ -131,6 +131,7 @@ class ControllerAccountOrder extends Controller {
 				'status'     => $result['status'],
 				'date_added' => date('d', strtotime($result['date_added'])) . ' ' . $this->language->get(date('M', strtotime($result['date_added']))) . ' ' . date('Y', strtotime($result['date_added'])),
 				'products'   => $products,
+				'delivery_rating' => $result['delivery_rating'],
 				'total'      => $this->currency->format($result['total'], $result['currency_code'], $result['currency_value']),
 				'view'       => $this->url->link('account/order/info', 'order_id=' . $result['order_id'], true),
 			);
@@ -340,6 +341,9 @@ class ControllerAccountOrder extends Controller {
 
 			$products = $this->model_account_order->getOrderProducts($this->request->get['order_id']);
 
+			$data['products_count'] = 0;
+			$data['products_weight_total'] = 0;
+
 			foreach ($products as $product) {
 				$option_data = array();
 
@@ -364,7 +368,13 @@ class ControllerAccountOrder extends Controller {
 					);
 				}
 
-				$product_info = $this->model_catalog_product->getProduct($product['product_id']);
+				$product_info = $this->model_account_order->getProductInfo($product['product_id']);
+
+//				echo "<pre>";
+//				print_r($product_info);
+//				echo "</pre>";
+
+                $data['products_weight_total'] += $product_info['weight'] / $product_info['multiply'];
 
 				if ($product_info) {
 					$reorder = $this->url->link('account/order/reorder', 'order_id=' . $order_id . '&order_product_id=' . $product['order_product_id'], true);
@@ -372,16 +382,23 @@ class ControllerAccountOrder extends Controller {
 					$reorder = '';
 				}
 
+				$this->load->model('tool/image');
+
 				$data['products'][] = array(
 					'name'     => $product['name'],
 					'model'    => $product['model'],
 					'option'   => $option_data,
 					'quantity' => $product['quantity'],
+					'weight'   => (int)$product_info['weight'],
+					'weight_unit' => $product_info['weight_unit'],
+					'thumb'    => $product_info['image'] ? $this->model_tool_image->resize($product_info['image'], 100, 100) : $this->model_tool_image->resize('placeholder.png', 100, 100),
 					'price'    => $this->currency->format($product['price'] + ($this->config->get('config_tax') ? $product['tax'] : 0), $order_info['currency_code'], $order_info['currency_value']),
 					'total'    => $this->currency->format($product['total'] + ($this->config->get('config_tax') ? ($product['tax'] * $product['quantity']) : 0), $order_info['currency_code'], $order_info['currency_value']),
 					'reorder'  => $reorder,
 					'return'   => $this->url->link('account/return/add', 'order_id=' . $order_info['order_id'] . '&product_id=' . $product['product_id'], true)
 				);
+
+                $data['products_count']++;
 			}
 
 			// Voucher
@@ -499,7 +516,76 @@ class ControllerAccountOrder extends Controller {
 		$this->response->redirect($this->url->link('account/order/info', 'order_id=' . $order_id));
 	}
 
-    function right_word_ends($number, $titles) {
+	public function addDeliveryReview() {
+        $this->load->language('account/order');
+        $this->load->model('account/order');
+
+        $json = array();
+
+        $permitted_chars = '0123456789abcdefghijklmnopqrstuvwxyz';
+
+        if (($this->request->server['REQUEST_METHOD'] == 'POST')) {
+            $post = $this->request->post;
+
+            if (!isset($post['options'])) {
+                $post['options'] = '';
+            }
+
+            $upload_dir_path = 'image/uploads';
+            $upload_dir = 'uploads';
+
+            if( ! is_dir( $upload_dir_path ) ) mkdir( $upload_dir_path, 0777 );
+
+            $files      = $this->request->files; // полученные файлы
+
+            $done_files = array();
+
+            // переместим файлы из временной директории в указанную
+            foreach( $files as $file ) {
+                $files_name = $file['name'];
+
+                foreach ($files_name as $key => $file_name) {
+                    // Получаем расширение файла
+                    $getMime = explode('.', $file_name);
+                    $mime = end($getMime);
+
+                    $randomName = substr(str_shuffle($permitted_chars), 0, 10) . '.' . $mime;
+
+                    if( move_uploaded_file( $file['tmp_name'][$key], "$upload_dir_path/$randomName" ) ) {
+                        $done_files[] =  "$upload_dir/$randomName";
+                    }
+                }
+
+            }
+
+            $post['images'] = json_encode(array_values($done_files));
+
+            $this->model_account_order->addOrderReview($post);
+        }
+    }
+
+	public function getOrderInfo() {
+        $this->load->language('account/order');
+        $this->load->model('account/order');
+
+        $json = array();
+
+        if (isset($this->request->get['order_id']) && ($this->request->server['REQUEST_METHOD'] == 'GET')) {
+            $order_info = $this->model_account_order->getOrderInfo($this->request->get['order_id']);
+
+            $json = array(
+                'order_id'   => $order_info['order_id'],
+                'status'     => $order_info['status'],
+                'date_added' => date('d', strtotime($order_info['date_added'])) . ' ' . $this->language->get(date('M', strtotime($order_info['date_added']))) . ' ' . date('Y', strtotime($order_info['date_added'])),
+                'total'      => $this->currency->format($order_info['total'], $order_info['currency_code'], $order_info['currency_value']),
+            );
+
+            $this->response->addHeader('Content-Type: application/json');
+            $this->response->setOutput(json_encode($json));
+        }
+    }
+
+    protected function right_word_ends($number, $titles) {
         $cases = array (2, 0, 1, 1, 1, 2);
 
         return sprintf($titles[($number % 100 > 4 && $number % 100 < 20) ? 2 : $cases[min($number % 10, 5)]], $number);

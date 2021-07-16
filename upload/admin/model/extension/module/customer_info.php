@@ -11,7 +11,6 @@ class ModelExtensionModuleCustomerInfo extends Model {
               PRIMARY KEY (`customer_id`)
             ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 		");
-
         $this->db->query("
             CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "customer_mailings` (
               `customer_id` INT(11) NOT NULL,
@@ -20,11 +19,36 @@ class ModelExtensionModuleCustomerInfo extends Model {
               PRIMARY KEY (`customer_id`)
             ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 		");
+        $this->db->query("
+            CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "customer_voucher` (
+              `id` INT(11) NOT NULL AUTO_INCREMENT,
+              `customer_id` INT(11) NOT NULL,
+              `voucher_id` INT(11) NOT NULL,
+              PRIMARY KEY (`id`)
+            ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+		");
+        $this->db->query("DROP TABLE IF EXISTS `" . DB_PREFIX . "order_review`");
+        $this->db->query("
+            CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "order_review` (
+              `id` INT(11) NOT NULL AUTO_INCREMENT,
+              `order_id` INT(11) NOT NULL,
+              `delivery_rating` INT(1) NOT NULL,
+              `options` TEXT NOT NULL,
+              `text` VARCHAR(255) NOT NULL,
+              `images` TEXT NOT NULL,
+              `need_callback` INT(1) DEFAULT 0,
+              `status` INT(1) DEFAULT 0,
+              `date_added` TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
+              PRIMARY KEY (`id`)
+            ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
+		");
 	}
 
 	public function uninstall() {
 		$this->db->query("DROP TABLE IF EXISTS `" . DB_PREFIX . "customer_info`");
 		$this->db->query("DROP TABLE IF EXISTS `" . DB_PREFIX . "customer_mailings`");
+		$this->db->query("DROP TABLE IF EXISTS `" . DB_PREFIX . "customer_voucher`");
+		$this->db->query("DROP TABLE IF EXISTS `" . DB_PREFIX . "order_review`");
 	}
 
     public function saveCustomerInfo($customer_id, $data) {

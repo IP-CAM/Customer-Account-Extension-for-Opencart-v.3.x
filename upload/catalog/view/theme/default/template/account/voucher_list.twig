@@ -1,0 +1,163 @@
+{{ header }}
+<style>
+  .voucher-card {
+    border: 1px solid #C7DDE6;
+    box-sizing: border-box;
+    border-radius: 5px;
+    padding: 10px;
+    display: flex;
+    margin-bottom: 10px;
+  }
+  .voucher-card-left {
+    min-width: 25%;
+  }
+  .voucher-card-right {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: 100%;
+  }
+  .voucher-card-right-info {
+    display: flex;
+    justify-content: space-between;
+  }
+  .voucher-card-right-info-message {
+    background: #F0F7FD;
+    border-radius: 16px;
+    padding: 10px 15px;
+    display: flex;
+  }
+  .voucher-card-right-info-item {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .voucher-card-right-info-message-left {
+    min-width: 250px;
+  }
+  .voucher-card-right-info-message-right {
+    color: #222222;
+    font-size: 11px;
+  }
+  .voucher-card-right-info-item-bold {
+    font-weight: bold;
+    font-size: 14px;
+  }
+</style>
+<div id="account-voucher" class="container">
+  <ul class="breadcrumb">
+    {% for breadcrumb in breadcrumbs %}
+    <li><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+    {% endfor %}
+  </ul>
+  {% if error_warning %}
+  <div class="alert alert-danger alert-dismissible"><i class="fa fa-exclamation-circle"></i> {{ error_warning }}</div>
+  {% endif %}
+  <div class="row">{{ column_left }}
+    {% if column_left and column_right %}
+    {% set class = 'col-sm-6' %}
+    {% elseif column_left or column_right %}
+    {% set class = 'col-sm-9' %}
+    {% else %}
+    {% set class = 'col-sm-12' %}
+    {% endif %}
+    <div id="content" class="{{ class }}">{{ content_top }}
+      <h1>{{ heading_title }}</h1>
+
+      <button type="button" class="btn" data-toggle="modal" data-target="#exampleModal" style="margin-bottom: 20px;">{{ button_add_voucher }}</button>
+
+      {% for voucher in vouchers %}
+        <div class="voucher-card">
+          <div class="voucher-card-left">
+            <img src="{{ voucher.thumb }}" alt="{{ voucher.name }}">
+          </div>
+          <div class="voucher-card-right">
+            <span style="margin-bottom: 10px; border-bottom: 1px solid #E5F1F6">{{ voucher.name }}</span>
+            <div class="voucher-card-right-info">
+              <div class="voucher-card-right-info-message">
+                <div class="voucher-card-right-info-message-left">
+                  <span style="color: #8BA1AA">{{ voucher.from_name }}</span>
+                  <p style="color: #222222; font-size: 14px;">{{ voucher.message }}</p>
+                </div>
+                <div class="voucher-card-right-info-message-right">{{ voucher.date_added }}</div>
+              </div>
+              <div class="voucher-card-right-info-item">
+                <span>Номинал</span>
+                <span class="voucher-card-right-info-item-bold">{{ voucher.amount|round }} ₽</span>
+              </div>
+              <div class="voucher-card-right-info-item">
+                <span>Промокод</span>
+                <span class="voucher-card-right-info-item-bold">{{ voucher.code }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+
+      <!-- Modal -->
+      <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="exampleModalLabel">{{ entry_voucher_code }}</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              {{ help_voucher_form_description }}
+
+              <form action="{{ actionVoucherCode }}" id="form-voucher-code-activation" method="post" enctype="multipart/form-data">
+                <input type="text" name="voucher_code" class="form-control" placeholder="Промокод">
+                <button type="button" class="btn" id="voucher-code-activation-btn">{{ button_ok }}</button>
+                <span style="display: none;" id="voucher-code-activation-message"></span>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {{ content_bottom }}
+    </div>
+    {{ column_right }}
+  </div>
+</div>
+<script>
+  $('#voucher-code-activation-btn').on('click', function () {
+      let voucherCode = $('input[name="voucher_code"]').val();
+      let voucherCodeMessage = $('#voucher-code-activation-message');
+
+      voucherCodeMessage.text('')
+      voucherCodeMessage.hide()
+
+      if (voucherCode) {
+          $.ajax({
+              url: 'index.php?route=account/voucher/activation&voucher_code=' + voucherCode,
+              type: 'post',
+              success: function(json) {
+                  if (json['error']) {
+                      $('#review').after('<div class="alert alert-danger alert-dismissible"><i class="fa fa-exclamation-circle"></i> ' + json['error'] + '</div>');
+                      voucherCodeMessage.text(json['error']);
+                      voucherCodeMessage.show();
+                  }
+
+                  if (json['success']) {
+                      voucherCodeMessage.text(json['success']);
+                      voucherCodeMessage.show();
+
+                      $('input[name="voucher_code"]').val('')
+
+                      setTimeout(function () {
+                          location = window.location
+                      }, 3000)
+                  }
+              }
+          });
+      } else {
+          voucherCodeMessage.text('Введите промокод!')
+          voucherCodeMessage.show();
+      }
+  })
+</script>
+{{ footer }}

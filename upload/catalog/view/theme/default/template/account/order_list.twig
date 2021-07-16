@@ -67,6 +67,125 @@
   .order-product-block {
     border-bottom: 1px solid #E5F1F6;
   }
+  .delivery-rating-stars {
+    margin: 0 auto;
+    width: fit-content;
+    text-align: center;
+  }
+  #drop-files {
+    position:relative;
+    height: fit-content;
+    background: rgba(0,0,0,0.1);
+    border-radius: 10px;
+    border: 4px dashed rgba(0,0,0,0.2);
+    text-align: center;
+  }
+  #drop-files p {
+    clear:none;
+    padding:0;
+    margin:0;
+  }
+  #uploaded-holder {
+    display: none;
+    position:relative;
+    margin: 0 auto;
+  }
+  #dropped-files {
+    display:block;
+    margin: 0 auto;
+    width: 100%;
+  }
+  #upload-button {
+    z-index: 9999;
+    display: none;
+    margin: 20px 0;
+  }
+  .drop-button {
+    display: block;
+    position: absolute;
+    z-index: 9999;
+    padding: 5px;
+    width: 100%;
+    background: rgba(0,0,0,0.6);
+    font-size: 1em;
+    bottom: 0;
+    text-align: center;
+    text-decoration: none;
+    font-weight: 700;
+    color: #FFF;
+  }
+  #dropped-files .review-image-preview {
+    position: relative;
+    height: 50px;
+    width: 50px;
+    border: 4px solid #fff;
+    box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+    background: #fff;
+    float: left;
+    border-radius: 4px;
+    margin: 0 7px 7px 0;
+    overflow: hidden;
+  }
+  #upload-button .ss-upload {
+    font-size: 0.7em;
+  }
+  #upload-button a {
+    text-decoration: none;
+    color: #fff;
+    font-weight: bold;
+    box-shadow: 0 0 1000px 62px rgba(255, 255, 255, 1), inset 0 -35px 40px -10px #0A9FCA;
+    font-size: 20px;
+    padding: 10px 20px;
+    background-color: #4bc1e3;
+    border-radius: 10px;
+  }
+  #upload-button span {
+    position:relative;
+    text-align: center;
+    background: white;
+    border-radius: 10px;
+    font-size: 1.1em;
+    padding: 6px;
+    margin-right: 8px;
+  }
+  #upload-button a:hover {
+    box-shadow: 0 0 1000px 62px rgba(255, 255, 255, 1), inset 0 -5px 40px 0px #0A9FCA;
+  }
+  #dropped-files #upload-button .delete {
+    padding: 7px 6px 4px 6px;
+    border-radius: 100px;
+    background: rgba(0,0,0,0.6);
+    box-shadow: none;
+    font-size: 1em;
+    margin-left: 8px;
+  }
+  #dropped-files #upload-button .delete:hover {
+    background: rgba(0,0,0,0.8);
+  }
+  #file-name-holder h1 {
+    text-align: center;
+    padding: 20px 0;
+    font-size: 3em;
+    margin: 0;
+  }
+  #uploaded-files {
+    width:500px;
+    list-style:none;
+    margin:0 auto;
+    padding: 10px;
+    color: #545454;
+  }
+  #uploaded-files li {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    font-size: 1.5em;
+    font-weight: bold;
+    line-height: 25px;
+    color: #545454;
+  }
+  #uploaded-files a {
+    color: #1bacbf;
+  }
 </style>
 <div id="account-order" class="container">
   <ul class="breadcrumb">
@@ -113,7 +232,7 @@
         {% for order in orders %}
 
           <div class="order-block">
-            <div class="order-block-header">
+            <a href="{{ order.view }}" class="order-block-header">
               <div class="order-block-header-left">
                 <span>{{ order.status }}</span><br>
                 <span>Адрес: ул. Заставская 21к1</span>
@@ -121,7 +240,7 @@
               <div class="order-block-header-right">
                 <span><b>{{ order.total }}</b></span>
               </div>
-            </div>
+            </a>
             <div class="order-block-body">
               <div class="order-block-body-left">
                 {% for product in order.products %}
@@ -137,12 +256,18 @@
               </div>
               <div class="order-block-body-right">
                 <button class="order-btn">Повторить заказ</button>
-                <button class="order-btn">Оценить доставку</button>
+                {% if not order.delivery_rating %}
+                  <button class="order-btn deliveryRatingBtn" type="button" data-order-id="{{ order.order_id }}">Оценить доставку</button>
+                {% endif %}
                 <button class="order-btn">Написать в поддержку</button>
               </div>
             </div>
             <div class="order-block-footer">
-              <span>Заказ от {{ order.date_added }}</span>
+              <span>
+                <span>Заказ от {{ order.date_added }}</span>
+                <br>
+                <span>№ {{ order.order_id }}</span>
+              </span>
             </div>
           </div>
 
@@ -158,6 +283,75 @@
 
         {% endfor %}
 
+        <div class="modal fade" id="deliveryRatingModal" tabindex="-1" role="dialog" aria-labelledby="deliveryRatingModalLabel" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="deliveryRatingModalLabel"></h5>
+                <h5 class="modal-title" id="deliveryRatingModalLabel2"></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <div class="delivery-rating-stars">
+                  <h4>Оцените доставку</h4>
+                  <input type="radio" name="delivery_rating" value="1">
+                  <input type="radio" name="delivery_rating" value="2">
+                  <input type="radio" name="delivery_rating" value="3">
+                  <input type="radio" name="delivery_rating" value="4">
+                  <input type="radio" name="delivery_rating" value="5">
+                  <br>
+                  <button id="leaveDeliveryRatingBtn">Оставьте оценку</button>
+                </div>
+                <div class="delivery-review-block" style="display: none;">
+                  <h4>Что вам понравилось?</h4>
+                  <form id="form-delivery-review">
+                    <div>
+                      <input type="checkbox" id="delivery-speed" name="options[delivery_speed]" value="1">
+                      <label for="delivery_speed">Скорость доставки</label>
+                    </div>
+                    <div>
+                      <input type="checkbox" id="delivery-quality" name="options[delivery_quality]" value="1">
+                      <label for="delivery_quality">Качество посылки</label>
+                    </div>
+                    <div>
+                      <input type="checkbox" id="convenient-location" name="options[convenient_location]" value="1">
+                      <label for="convenient_location">Удобное расположение</label>
+                    </div><div>
+                      <input type="checkbox" id="schedule" name="options[schedule]" value="1">
+                      <label for="schedule">График работы</label>
+                    </div>
+                    <textarea name="text" id="comment" cols="30" rows="10" placeholder="Комментарий"></textarea>
+
+                    <div class="review-image">
+                      <div id="drop-files" ondragover="return false">
+                        <input type="file" name="review-image" id="uploadbtn" accept=".jpg, .jpeg, .png"  multiple />
+                        <p>{{ text_click_or_drag_n_drop }}</p>
+                        <p>{{ text_max_images }}</p>
+                      </div>
+                      <div id="uploaded-holder">
+                        <div id="dropped-files">
+                          <div id="upload-button">
+                            <span>0 {{ text_files }}</span>
+                            <a href="#" class="delete">{{ button_delete_all }}</a>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style="margin-top: 100px;">
+                      <input type="checkbox" id="need-callback" name="need_callback" value="1">
+                      <label for="need_callback">Связаться со мной</label>
+                    </div>
+                    <button type="button" class="btn" id="sendDeliveryReview">Отправить</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="row">
           <div class="col-sm-6 text-left">{{ pagination }}</div>
           <div class="col-sm-6 text-right">{{ results }}</div>
@@ -168,4 +362,258 @@
       {{ content_bottom }}</div>
     {{ column_right }}</div>
 </div>
+<script>
+  $('#sendDeliveryReview').on('click', function () {
+      let f = $('#form-delivery-review').serializeArray()
+      let dataForm = new FormData();
+      let orderId = $('#sendDeliveryReview').attr('data-order-id')
+      let deliveryRating = $('input[name="delivery_rating"]:checked').val()
+
+      if (deliveryRating && orderId) {
+          $.each(f, function (i, el) {
+              dataForm.append(el['name'], el['value']);
+          })
+
+          $.each(mainImagesFiles, function (i, file) {
+              dataForm.append("file[" + i + "]", file.file);
+          });
+
+          dataForm.append("delivery_rating", deliveryRating);
+          dataForm.append("order_id", orderId);
+
+          $.ajax({
+              url: 'index.php?route=account/order/addDeliveryReview',
+              type: 'POST', // важно!
+              data: dataForm,
+              cache: false,
+              // dataType: 'json',
+              // отключаем обработку передаваемых данных, пусть передаются как есть
+              processData: false,
+              // отключаем установку заголовка типа запроса. Так jQuery скажет серверу что это строковой запрос
+              contentType: false,
+              // функция успешного ответа сервера
+              success: function (respond, status, jqXHR) {
+                  $('#deliveryRatingModal').modal('hide')
+                  $('button[data-order-id="' + orderId + '"]').remove();
+              },
+          });
+      }
+  })
+</script>
+<script>
+    var $ = jQuery.noConflict();
+    var mainImagesFiles = []; // переменная. будет содержать данные файлов
+    $(document).ready(function() {
+        // В dataTransfer помещаются изображения которые перетащили в область div
+        jQuery.event.props.push('dataTransfer');
+        // Максимальное количество загружаемых изображений за одни раз
+        var maxFiles = 10;
+        // Оповещение по умолчанию
+        var errMessage = 0;
+        // Кнопка выбора файлов
+        var defaultUploadBtn = $('#uploadbtn');
+        // Массив для всех изображений
+        var dataArray = [];
+        // Область информер о загруженных изображениях - скрыта
+        $('#uploaded-files').hide();
+        // Метод при падении файла в зону загрузки
+        $('#drop-files').on('drop', function(e) {
+            // Передаем в files все полученные изображения
+            var files = e.dataTransfer.files;
+            var fileIdCounter = 0;
+            for (var i = 0; i < e.dataTransfer.files.length; i++) {
+                fileIdCounter++;
+                var file = e.dataTransfer.files[i];
+                var fileId = fileIdCounter;
+                mainImagesFiles.push({
+                    id: fileId,
+                    file: file
+                });
+            }
+            // Проверяем на максимальное количество файлов
+            if (files.length <= maxFiles) {
+                // Передаем массив с файлами в функцию загрузки на предпросмотр
+                loadInView(files);
+            } else {
+                alert('{{ text_u_cant_load_more }} '+maxFiles+' {{ text_images }}!');
+                files.length = 0; return;
+            }
+        });
+        // При нажатии на кнопку выбора файлов
+        defaultUploadBtn.on('change', function() {
+            // Заполняем массив выбранными изображениями
+            var files = $(this)[0].files;
+            var fileIdCounter = 0;
+            for (var i = 0; i < $(this)[0].files.length; i++) {
+                fileIdCounter++;
+                var file = $(this)[0].files[i];
+                var fileId = fileIdCounter;
+                mainImagesFiles.push({
+                    id: fileId,
+                    file: file
+                });
+            }
+            // Проверяем на максимальное количество файлов
+            if (files.length <= maxFiles) {
+                // Передаем массив с файлами в функцию загрузки на предпросмотр
+                loadInView(files);
+                // Очищаем инпут файл путем сброса формы
+                $('#frm').each(function(){
+                    this.reset();
+                });
+            } else {
+                alert('{{ text_u_cant_load_more }} '+maxFiles+' {{ text_images }}!');
+                files.length = 0;
+            }
+        });
+        // Функция загрузки изображений на предросмотр
+        function loadInView(files) {
+            // Показываем обасть предпросмотра
+            $('#uploaded-holder').show();
+            // Для каждого файла
+            $.each(files, function(index, file) {
+                // Несколько оповещений при попытке загрузить не изображение
+                if (!files[index].type.match('image.*')) {
+                    if(errMessage == 0) {
+                        $('#drop-files p').html('{{ error_only_image }}');
+                        errMessage = 0;
+                    }
+                    return false;
+                }
+                // Проверяем количество загружаемых элементов
+                if((dataArray.length+files.length) <= maxFiles) {
+                    // показываем область с кнопками
+                    $('#upload-button').css({'display' : 'block'});
+                }
+                else { alert('{{ text_u_cant_load_more }} '+maxFiles+' {{ text_images }}!'); return; }
+                // Создаем новый экземпляра FileReader
+                var fileReader = new FileReader();
+                // Инициируем функцию FileReader
+                fileReader.onload = (function(file) {
+                    return function(e) {
+                        // Помещаем URI изображения в массив
+                        dataArray.push({name : file.name, value : this.result});
+                        addImage((dataArray.length-1));
+                    };
+                })(files[index]);
+                // Производим чтение картинки по URI
+                fileReader.readAsDataURL(file);
+            });
+            return false;
+        }
+        // Процедура добавления эскизов на страницу
+        function addImage(ind) {
+            // Если индекс отрицательный значит выводим весь массив изображений
+            if (ind < 0 ) {
+                start = 0; end = dataArray.length;
+            } else {
+                // иначе только определенное изображение
+                start = ind; end = ind+1; }
+            // Оповещения о загруженных файлах
+            if(dataArray.length == 0) {
+                // Если пустой массив скрываем кнопки и всю область
+                $('#upload-button').hide();
+                $('#uploaded-holder').hide();
+            } else if (dataArray.length == 1) {
+                $('#upload-button span').html("{{ text_was_selected_one_file }}");
+            } else {
+                $('#upload-button span').html(dataArray.length+" {{ text_was_selected_files }}");
+            }
+            // Цикл для каждого элемента массива
+            for (i = start; i < end; i++) {
+                // размещаем загруженные изображения
+                if($('#dropped-files > .review-image-preview').length <= maxFiles) {
+                    $('#dropped-files').append('<div id="img-'+i+'" class="review-image-preview" style="background: url('+dataArray[i].value+'); background-size: cover;"> <a href="#" id="drop-'+i+'" class="drop-button">{{ button_delete_image }}</a></div>');
+                }
+            }
+            return false;
+        }
+        // Функция удаления всех изображений
+        function restartFiles() {
+            // Установим бар загрузки в значение по умолчанию
+            $('#loading-bar .loading-color').css({'width' : '0%'});
+            $('#loading').css({'display' : 'none'});
+            $('#loading-content').html(' ');
+            // Удаляем все изображения на странице и скрываем кнопки
+            $('#upload-button').hide();
+            $('#dropped-files > .review-image-preview').remove();
+            $('#uploaded-holder').hide();
+            // Очищаем массив
+            dataArray.length = 0;
+            $('#uploadbtn').val('')
+            mainImagesFiles = [];
+            return false;
+        }
+        // Удаление только выбранного изображения
+        $("#dropped-files").on("click","a[id^='drop']", function(event) {
+            event.preventDefault();
+            // получаем название id
+            var elid = $(this).attr('id');
+            // создаем массив для разделенных строк
+            var temp = new Array();
+            // делим строку id на 2 части
+            temp = elid.split('-');
+            // получаем значение после тире тоесть индекс изображения в массиве
+            dataArray.splice(temp[1],1);
+            mainImagesFiles.splice(temp[1],1);
+            // Удаляем старые эскизы
+            $('#dropped-files > .review-image-preview').remove();
+            // Обновляем эскизи в соответсвии с обновленным массивом
+            addImage(-1);
+        });
+        $('#dropped-files').delegate('.review-image-preview', 'click', function () {
+            if($(this).outerWidth() === 50) {
+                $(this).css('width', 300)
+                $(this).css('height', 300)
+            } else {
+                $(this).css('width', 50)
+                $(this).css('height', 50)
+            }
+        })
+        // Удалить все изображения кнопка
+        $('#dropped-files #upload-button .delete').click(restartFiles);
+        // Простые стили для области перетаскивания
+        $('#drop-files').on('dragenter', function() {
+            $(this).css({'box-shadow' : 'inset 0px 0px 20px rgba(0, 0, 0, 0.1)', 'border' : '4px dashed #bb2b2b'});
+            return false;
+        });
+        $('#drop-files').on('drop', function() {
+            $(this).css({'box-shadow' : 'none', 'border' : '4px dashed rgba(0,0,0,0.2)'});
+            return false;
+        });
+    });
+</script>
+<script>
+  $('.deliveryRatingBtn').on('click', function () {
+      let orderId = $(this).attr('data-order-id')
+
+      if (orderId) {
+          $.ajax({
+              url: 'index.php?route=account/order/getOrderInfo&order_id=' + orderId,
+              type: 'GET',
+              success: function(json) {
+                  let heading = 'Заказ от ' + json['date_added'] + ' ' + json['status'];
+                  let heading2 = '№ ' + json['order_id'] + ' - ' + json['total'];
+
+                  $('#deliveryRatingModalLabel').text(heading)
+                  $('#deliveryRatingModalLabel2').text(heading2)
+
+                  $('#sendDeliveryReview').attr('data-order-id', orderId)
+
+                  $('#deliveryRatingModal').modal('show')
+              }
+          });
+      }
+
+
+  })
+  $('#leaveDeliveryRatingBtn').on('click', function () {
+      let deliveryRating = $('input[name="delivery_rating"]:checked').val()
+      if (deliveryRating) {
+          $('.delivery-review-block').show()
+          $(this).hide()
+          $('.delivery-rating-stars h4').hide()
+      }
+  })
+</script>
 {{ footer }}

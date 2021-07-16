@@ -67,23 +67,25 @@
           <h4>Персональные рассылки</h4>
         </div>
         <div class="mailing-block-body">
-          {% for mailing in personal_mailings %}
-            <div class="parent-checkbox-container">
-              <div class="parent-checkbox">
-                <input type="checkbox" id="{{ mailing.value }}" name="{{ mailing.value }}" {% if mailing.checked %}checked{% endif %}>
-                <label for="{{ mailing.value }}">{{ mailing.name }}</label>
-              </div>
-              {% for children in mailing.children %}
-                <div style="margin-left: 20px;">
-                  <input type="checkbox" id="{{ children.value }}" name="{{ children.value }}" {% if children.checked %}checked{% endif %}>
-                  <label for="{{ children.value }}">{{ children.name }}</label>
+          <form action="{{ actionPersonalMailings }}" id="form-personal-mailing" method="post" enctype="multipart/form-data">
+            {% for mailing in personal_mailings %}
+              <div class="parent-checkbox-container">
+                <div class="parent-checkbox">
+                  <input type="checkbox" id="{{ mailing.value }}" name="{{ mailing.value }}" {% if mailing.checked %}checked{% endif %}>
+                  <label for="{{ mailing.value }}">{{ mailing.name }}</label>
                 </div>
-              {% endfor %}
-            </div>
-          {% endfor %}
+                {% for children in mailing.children %}
+                  <div style="margin-left: 20px;">
+                    <input type="checkbox" id="{{ children.value }}" name="{{ children.value }}" {% if children.checked %}checked{% endif %}>
+                    <label for="{{ children.value }}">{{ children.name }}</label>
+                  </div>
+                {% endfor %}
+              </div>
+            {% endfor %}
+          </form>
         </div>
         <div class="mailing-block-footer">
-          <button>Отменить подписку</button>
+          <button type="submit" form="form-personal-mailing">Отменить подписку</button>
         </div>
       </div>
 

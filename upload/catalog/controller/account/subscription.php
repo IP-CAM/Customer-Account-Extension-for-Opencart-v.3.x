@@ -35,6 +35,7 @@ class ControllerAccountSubscription extends Controller {
         $this->load->model('account/subscription');
 
         $mailings = $this->model_account_subscription->getSubscriptionOnMailings();
+        $personalMailings = $this->model_account_subscription->getSubscriptionOnPersonalMailings();
 
 		$data['mailings'] = array(
 		    array(
@@ -62,44 +63,26 @@ class ControllerAccountSubscription extends Controller {
             $categories[] = array(
                 'name'    => $result['name'],
                 'value'   => $result['category_id'],
-                'checked' => false,
+                'checked' => (isset($personalMailings[$result['category_id']]) ? $personalMailings[$result['category_id']] : false),
             );
 		}
-
-//        echo "<pre>";
-//        print_r($categories);
-//        echo "</pre>";
 
         $data['personal_mailings'] = array(
             array(
                 'name'    => $this->language->get('text_interesting_products_available_now'),
                 'value'   => 'interesting_products_available_now',
-                'checked' => false,
+                'checked' => (isset($personalMailings['interesting_products_available_now']) ? $personalMailings['interesting_products_available_now'] : false),
             ),
             array(
                 'name'     => $this->language->get('text_new_products_in_category'),
                 'value'    => 'new_products_in_category',
-                'checked'  => false,
+                'checked'  => (isset($personalMailings['new_products_in_category']) ? $personalMailings['new_products_in_category'] : false),
                 'children' => $categories
             ),
         );
 
         $data['actionMailings'] = $this->url->link('account/subscription/saveMailings');
-
-//		$data['reviews'] = array();
-//
-//		$results = $this->model_account_return->getReturns(($page - 1) * 10, 10);
-//
-//		foreach ($results as $result) {
-//			$data['reviews'][] = array(
-//				'review_id'  => $result['return_id'],
-//				'order_id'   => $result['order_id'],
-//				'name'       => $result['firstname'] . ' ' . $result['lastname'],
-//				'status'     => $result['status'],
-//				'date_added' => date($this->language->get('date_format_short'), strtotime($result['date_added'])),
-//				'href'       => $this->url->link('account/return/info', 'return_id=' . $result['return_id'] . $url, true)
-//			);
-//		}
+        $data['actionPersonalMailings'] = $this->url->link('account/subscription/savePersonalMailings');
 
 		$data['column_left'] = $this->load->controller('common/column_left');
 		$data['column_right'] = $this->load->controller('common/column_right');
@@ -116,6 +99,18 @@ class ControllerAccountSubscription extends Controller {
 
         if (($this->request->server['REQUEST_METHOD'] == 'POST') ) { //&& $this->validateForm()) {
             $this->model_account_subscription->saveSubscriptionOnMailings($this->request->post);
+
+            $this->response->redirect($this->url->link('account/subscription'));
+        }
+
+        $this->index();
+    }
+
+	public function savePersonalMailings() {
+        $this->load->model('account/subscription');
+
+        if (($this->request->server['REQUEST_METHOD'] == 'POST') ) { //&& $this->validateForm()) {
+            $this->model_account_subscription->saveSubscriptionOnPersonalMailings($this->request->post);
 
             $this->response->redirect($this->url->link('account/subscription'));
         }

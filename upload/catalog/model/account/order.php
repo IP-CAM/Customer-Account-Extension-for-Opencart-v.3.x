@@ -101,7 +101,7 @@ class ModelAccountOrder extends Model {
 	}
 
 	public function getOrders($data = array()) {
-        $sql = "SELECT o.order_id, o.firstname, o.lastname, os.name as status, o.date_added, o.total, o.currency_code, o.currency_value FROM `" . DB_PREFIX . "order` o LEFT JOIN " . DB_PREFIX . "order_status os ON (o.order_status_id = os.order_status_id) WHERE o.customer_id = '" . (int)$this->customer->getId() . "' AND o.order_status_id > '0' AND o.store_id = '" . (int)$this->config->get('config_store_id') . "' AND os.language_id = '" . (int)$this->config->get('config_language_id') . "'"; // AND o.date_added LIKE '%" . $this->db->escape($year) . "%' ORDER BY o.order_id DESC LIMIT " . (int)$start . "," . (int)$limit;
+        $sql = "SELECT o.order_id, o.firstname, o.lastname, os.name as status, o.date_added, o.total, o.currency_code, o.currency_value, `or`.delivery_rating FROM `" . DB_PREFIX . "order` o LEFT JOIN " . DB_PREFIX . "order_status os ON (o.order_status_id = os.order_status_id) LEFT JOIN " . DB_PREFIX . "order_review `or` ON (o.order_id = `or`.order_id) WHERE o.customer_id = '" . (int)$this->customer->getId() . "' AND o.order_status_id > '0' AND o.store_id = '" . (int)$this->config->get('config_store_id') . "' AND os.language_id = '" . (int)$this->config->get('config_language_id') . "'"; // AND o.date_added LIKE '%" . $this->db->escape($year) . "%' ORDER BY o.order_id DESC LIMIT " . (int)$start . "," . (int)$limit;
 
         if (isset($data['year'])) {
             $sql .= " AND o.date_added LIKE '%" . $this->db->escape($data['year']) . "%'";
@@ -140,8 +140,34 @@ class ModelAccountOrder extends Model {
 		return $query->rows;
 	}
 
+	public function getOrderInfo($order_id) {
+        $order_query = $this->db->query("SELECT o.*, os.name AS status FROM `" . DB_PREFIX . "order` o LEFT JOIN " . DB_PREFIX . "order_status os ON (o.order_status_id = os.order_status_id) WHERE o.order_id = '" . (int)$order_id . "' AND o.customer_id = '" . (int)$this->customer->getId() . "' AND o.customer_id != '0' AND o.order_status_id > '0'");
+
+        if ($order_query->num_rows) {
+            return array(
+                'order_id'                => $order_query->row['order_id'],
+                'customer_id'             => $order_query->row['customer_id'],
+                'shipping_method'         => $order_query->row['shipping_method'],
+                'total'                   => $order_query->row['total'],
+                'order_status_id'         => $order_query->row['order_status_id'],
+                'status'                  => $order_query->row['status'],
+                'language_id'             => $order_query->row['language_id'],
+                'currency_id'             => $order_query->row['currency_id'],
+                'currency_code'           => $order_query->row['currency_code'],
+                'currency_value'          => $order_query->row['currency_value'],
+                'date_added'              => $order_query->row['date_added'],
+            );
+        } else {
+            return false;
+        }
+    }
+
+    public function addOrderReview($data = array()) {
+	    $this->db->query("INSERT INTO `" . DB_PREFIX ."order_review` SET order_id = '" . (int)$data['order_id'] . "', delivery_rating = '" . (int)$data['delivery_rating'] . "', options = '" . $this->db->escape(json_encode($data['options'])) . "', `text` = '" . $this->db->escape($data['text']) . "', `images` = '" . $this->db->escape(json_encode($data['images'])) ."', need_callback = '" . (isset($data['need_callback']) ? 1 : 0) . "'");
+    }
+
     public function getProductInfo($product_id) {
-        $query = $this->db->query("SELECT p.image AS image, p.weight AS weight, wcd.unit AS weight_unit FROM " . DB_PREFIX . "product p LEFT JOIN " . DB_PREFIX . "weight_class_description wcd ON (p.weight_class_id = wcd.weight_class_id) WHERE p.product_id = '" . (int)$product_id . "'");
+        $query = $this->db->query("SELECT p.*, p.image AS image, p.weight AS weight, wcd.unit AS weight_unit, wc.value AS multiply FROM " . DB_PREFIX . "product p LEFT JOIN " . DB_PREFIX . "weight_class_description wcd ON (p.weight_class_id = wcd.weight_class_id) LEFT JOIN " . DB_PREFIX . "weight_class wc ON (p.weight_class_id = wc.weight_class_id) WHERE p.product_id = '" . (int)$product_id . "'");
 
         return $query->row;
     }

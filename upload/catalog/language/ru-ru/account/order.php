@@ -21,8 +21,19 @@ $_['text_error']            = 'Запрошенный заказ не найде
 $_['text_count_orders_1']   = '%d заказ';
 $_['text_count_orders_2']   = '%d заказа';
 $_['text_count_orders_5']   = '%d заказов';
-$_['text_date_added_asc']   = 'Сначала новые';
-$_['text_date_added_desc']  = 'Сначала старые';
+$_['text_date_added_asc']   = 'Сначала старые';
+$_['text_date_added_desc']  = 'Сначала новые';
+$_['text_files']               = 'файлов';
+$_['text_click_or_drag_n_drop']= 'Нажмите на кнопку или перетащите фото в эту область';
+$_['text_max_images']          = 'До 10 изображений в формате PNG, JPEG';
+$_['text_u_cant_load_more']    = 'Вы не можете загружать больше';
+$_['text_images']              = 'изображений';
+$_['text_was_selected_one_file'] = 'Был выбран 1 файл';
+$_['text_was_selected_files']  = 'файлов были выбраны';
+
+// Buttons
+$_['button_delete_all']        = 'Удалить все';
+$_['button_delete_image']      = 'Удалить изображение';
 
 // Column
 $_['column_order_id']       = '№ Заказа';

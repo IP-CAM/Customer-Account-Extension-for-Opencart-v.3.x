@@ -385,6 +385,7 @@ class ControllerAccountOrder extends Controller {
 				$this->load->model('tool/image');
 
 				$data['products'][] = array(
+					'product_id'=> $product['product_id'],
 					'name'     => $product['name'],
 					'model'    => $product['model'],
 					'option'   => $option_data,
@@ -439,6 +440,18 @@ class ControllerAccountOrder extends Controller {
 					'comment'    => $result['notify'] ? nl2br($result['comment']) : ''
 				);
 			}
+
+//			echo "<pre>";
+//			print_r($order_info);
+//			echo "</pre>";
+
+			$data['order_id'] = $this->request->get['order_id'];
+
+			$data['actionReturn'] = $this->url->link('account/order/addReturn', 'order_id=' . $order_id, true);
+
+            $this->load->model('localisation/return_reason');
+
+            $data['return_reasons'] = $this->model_localisation_return_reason->getReturnReasons();
 
 			$data['continue'] = $this->url->link('account/order', '', true);
 
@@ -582,6 +595,66 @@ class ControllerAccountOrder extends Controller {
 
             $this->response->addHeader('Content-Type: application/json');
             $this->response->setOutput(json_encode($json));
+        }
+    }
+
+	public function getOrderAndProductInfo() {
+        $this->load->language('account/order');
+        $this->load->model('account/order');
+        $this->load->model('tool/image');
+
+        $json = array();
+
+        if (isset($this->request->get['order_id']) && isset($this->request->get['product_id']) && ($this->request->server['REQUEST_METHOD'] == 'GET')) {
+            $order_info = $this->model_account_order->getOrderInfo($this->request->get['order_id']);
+            $product_info = $this->model_account_order->getProductInfo($this->request->get['product_id']);
+
+            $json = array(
+                'order_id'   => $order_info['order_id'],
+                'status'     => $order_info['status'],
+                'date_added' => date('d', strtotime($order_info['date_added'])) . ' ' . $this->language->get(date('M', strtotime($order_info['date_added']))) . ' ' . date('Y', strtotime($order_info['date_added'])),
+                'total'      => $this->currency->format($order_info['total'], $order_info['currency_code'], $order_info['currency_value']),
+                'product_name'        => $product_info['name'],
+                'product_weight'      => (int)$product_info['weight'],
+                'product_weight_unit' => $product_info['weight_unit'],
+                'product_price'       => $this->currency->format($product_info['price'], $order_info['currency_code'], $order_info['currency_value']),
+                'product_thumb'       => $product_info['image'] ? $this->model_tool_image->resize($product_info['image'], 100, 100) : $this->model_tool_image->resize('placeholder.png', 100, 100),
+            );
+
+            $this->response->addHeader('Content-Type: application/json');
+            $this->response->setOutput(json_encode($json));
+        }
+    }
+
+    public function addReturn() {
+        $this->load->model('account/return');
+        $this->load->model('account/order');
+        $this->load->model('account/customer');
+
+        $return = array();
+
+        if (isset($this->request->post['order_id']) && isset($this->request->post['product_id']) && ($this->request->server['REQUEST_METHOD'] == 'POST')) {
+            $order_info = $this->model_account_order->getOrder($this->request->post['order_id']);
+            $product_info = $this->model_account_order->getProductInfo($this->request->post['product_id']);
+
+            $return = array(
+                'order_id'   => $order_info['order_id'],
+                'firstname'  => $order_info['firstname'],
+                'lastname'   => $order_info['lastname'],
+                'email'      => $order_info['email'],
+                'telephone'  => $order_info['order_id'],
+                'product'    => $product_info['name'],
+                'model'      => $product_info['model'],
+                'quantity'   => 1,
+                'comment'    => $this->request->post['comment'],
+                'opened'     => 0,
+                'return_reason_id' => $this->request->post['return_reason_id'],
+                'date_ordered' => $order_info['date_added'],
+            );
+
+            $this->model_account_return->addReturn($return);
+
+            $this->response->redirect($this->url->link('account/order/info', 'order_id=' . $this->request->post['order_id'], true));
         }
     }
 

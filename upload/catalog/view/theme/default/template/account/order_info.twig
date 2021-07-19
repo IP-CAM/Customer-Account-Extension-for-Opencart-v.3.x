@@ -24,6 +24,16 @@
   .order-info-products-row-left img {
     margin-right: 10px;
   }
+  .return-product-block {
+    border: 1px solid #C7DDE6;
+    box-sizing: border-box;
+    border-radius: 5px;
+    padding: 20px;
+    display: flex;
+  }
+  .return-product-block-left {
+    width: 25%;
+  }
 </style>
 <div id="account-order" class="container">
   <ul class="breadcrumb">
@@ -84,63 +94,7 @@
           </tr>
         </tbody>
       </table>
-      <div class="table-responsive">
-        <table class="table table-bordered table-hover">
-          <thead>
-            <tr>
-              <td class="text-left">{{ column_name }}</td>
-              <td class="text-left">{{ column_model }}</td>
-              <td class="text-right">{{ column_quantity }}</td>
-              <td class="text-right">{{ column_price }}</td>
-              <td class="text-right">{{ column_total }}</td>
-              {% if products %}
-              <td style="width: 20px;"></td>
-              {% endif %} </tr>
-          </thead>
-          <tbody>
-          
-          {% for product in products %}
-          <tr>
-            <td class="text-left">{{ product.name }}
-              {% for option in product.option %} <br />
-              &nbsp;<small> - {{ option.name }}: {{ option.value }}</small> {% endfor %}</td>
-            <td class="text-left">{{ product.model }}</td>
-            <td class="text-right">{{ product.quantity }}</td>
-            <td class="text-right">{{ product.price }}</td>
-            <td class="text-right">{{ product.total }}</td>
-            <td class="text-right" style="white-space: nowrap;">{% if product.reorder %} <a href="{{ product.reorder }}" data-toggle="tooltip" title="{{ button_reorder }}" class="btn btn-primary"><i class="fa fa-shopping-cart"></i></a> {% endif %} <a href="{{ product.return }}" data-toggle="tooltip" title="{{ button_return }}" class="btn btn-danger"><i class="fa fa-reply"></i></a></td>
-          </tr>
-          {% endfor %}
-          {% for voucher in vouchers %}
-          <tr>
-            <td class="text-left">{{ voucher.description }}</td>
-            <td class="text-left"></td>
-            <td class="text-right">1</td>
-            <td class="text-right">{{ voucher.amount }}</td>
-            <td class="text-right">{{ voucher.amount }}</td>
-            {% if products %}
-            <td></td>
-            {% endif %} </tr>
-          {% endfor %}
-            </tbody>
-          
-          <tfoot>
-          
-          {% for total in totals %}
-          <tr>
-            <td colspan="3"></td>
-            <td class="text-right"><b>{{ total.title }}</b></td>
-            <td class="text-right">{{ total.text }}</td>
-            {% if products %}
-            <td></td>
-            {% endif %}
-          </tr>
-          {% endfor %}
-            </tfoot>
-          
-        </table>
-      </div>
-
+      
       <div class="order-info-products">
         <div class="order-info-products-heading">
           <span style="font-size: 14px;"><b>Вы заказали</b></span>
@@ -161,7 +115,7 @@
               {% if product.reorder %}
                 <a href="{{ product.reorder }}" class="btn">Купить повторно</a>
               {% endif %}
-              <a href="{{ product.return }}" class="btn">Вернуть</a>
+              <button type="button" class="btn returnFormBtn" data-order-id="{{ order_id }}" data-product-id="{{ product.product_id }}">Вернуть</button>
               <button type="button" class="btn"><i class="fa fa-heart-o"></i></button>
             </div>
           </div>
@@ -196,7 +150,96 @@
       </table>
       {% endif %}
 
-      {{ content_bottom }}</div>
-    {{ column_right }}</div>
+      <div class="modal fade" id="returnFormModal" tabindex="-1" role="dialog" aria-labelledby="returnFormModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="returnFormModalLabel"></h5>
+              <h5 class="modal-title" id="returnFormModalLabel2"></h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <div class="return-product-block">
+
+              </div>
+              <div class="return-review-block">
+                <h4>Укажите причину возврата</h4>
+                <form action="{{ actionReturn }}" method="post" enctype="multipart/form-data" id="form-return-product">
+                  {% for return_reason in return_reasons %}
+                    {% if loop.index == '1' %}
+                      <div class="radio">
+                        <label>
+                          <input type="radio" name="return_reason_id" value="{{ return_reason.return_reason_id }}" checked />
+                          {{ return_reason.name }}
+                        </label>
+                      </div>
+                    {% else %}
+                      <div class="radio">
+                        <label>
+                          <input type="radio" name="return_reason_id" value="{{ return_reason.return_reason_id }}" />
+                          {{ return_reason.name }}
+                        </label>
+                      </div>
+                    {% endif %}
+                  {% endfor %}
+
+                  <textarea name="comment" id="comment" cols="30" rows="10" placeholder="Комментарий"></textarea>
+                  <br>
+                  <input type="hidden" name="product_id">
+                  <input type="hidden" name="order_id">
+                  <button type="submit" class="btn" id="sendReturnForm" form="form-return-product">Отправить</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {{ content_bottom }}
+    </div>
+    {{ column_right }}
+  </div>
 </div>
+<script>
+    $('.returnFormBtn').on('click', function () {
+        let orderId = $(this).attr('data-order-id')
+        let productId = $(this).attr('data-product-id')
+
+        if (orderId && productId) {
+            $.ajax({
+                url: 'index.php?route=account/order/getOrderAndProductInfo&order_id=' + orderId + '&product_id=' + productId,
+                type: 'GET',
+                success: function(json) {
+                    let heading = 'Заказ от ' + json['date_added'] + ' ' + json['status'];
+                    let heading2 = '№ ' + json['order_id'] + ' - ' + json['total'];
+
+                    let productBlockHTML =
+                        '                     <div class="return-product-block-left">\n' +
+                        '                       <img src="' + json['product_thumb'] + '" alt="">\n' +
+                        '                     </div>\n' +
+                        '                     <div class="return-product-block-right">\n' +
+                        '                       <span><b>' + json['product_name'] + '</b></span>\n' +
+                        '                       <br>\n' +
+                        '                       <span>1 шт (' + json['product_weight'] + json['product_weight_unit'] + ')</span>\n' +
+                        '                       <br>\n' +
+                        '                       <span>' + json['product_price'] + '</span>\n' +
+                        '                     </div>';
+
+                    $('#returnFormModalLabel').text(heading)
+                    $('#returnFormModalLabel2').text(heading2)
+                    $('.return-product-block').html(productBlockHTML)
+
+                    $('#form-return-product input[name="order_id"]').val(orderId)
+                    $('#form-return-product input[name="product_id"]').val(productId)
+
+                    $('#returnFormModal').modal('show')
+                }
+            });
+        }
+
+
+    })
+</script>
 {{ footer }}

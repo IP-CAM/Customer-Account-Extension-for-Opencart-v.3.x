@@ -167,7 +167,7 @@ class ModelAccountOrder extends Model {
     }
 
     public function getProductInfo($product_id) {
-        $query = $this->db->query("SELECT p.*, p.image AS image, p.weight AS weight, wcd.unit AS weight_unit, wc.value AS multiply FROM " . DB_PREFIX . "product p LEFT JOIN " . DB_PREFIX . "weight_class_description wcd ON (p.weight_class_id = wcd.weight_class_id) LEFT JOIN " . DB_PREFIX . "weight_class wc ON (p.weight_class_id = wc.weight_class_id) WHERE p.product_id = '" . (int)$product_id . "'");
+        $query = $this->db->query("SELECT p.*, pd.name, p.image AS image, p.weight AS weight, wcd.unit AS weight_unit, wc.value AS multiply FROM " . DB_PREFIX . "product p LEFT JOIN " . DB_PREFIX . "weight_class_description wcd ON (p.weight_class_id = wcd.weight_class_id) LEFT JOIN " . DB_PREFIX . "weight_class wc ON (p.weight_class_id = wc.weight_class_id) LEFT JOIN " . DB_PREFIX . "product_description pd ON (p.product_id = pd.product_id) WHERE p.product_id = '" . (int)$product_id . "'");
 
         return $query->row;
     }

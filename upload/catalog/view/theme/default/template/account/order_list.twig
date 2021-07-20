@@ -66,6 +66,8 @@
   }
   .order-product-block {
     border-bottom: 1px solid #E5F1F6;
+    display: flex;
+    align-items: center;
   }
   .delivery-rating-stars {
     margin: 0 auto;
@@ -246,11 +248,14 @@
                 {% for product in order.products %}
                   <div class="order-product-block">
                     <img src="{{ product.thumb }}" style="width: fit-content;" alt="">
-                    <div style="width: fit-content; display: inline-block;">
-                      <b>{{ product.name }}</b> <br>
-                      {{ product.quantity }} шт ({{ product.weight|round }}{{ product.weight_unit }})
+                    <div style="margin-left: 20px;">
+                      <div style="width: fit-content; display: inline-block;">
+                        <b>{{ product.name }}</b> <br>
+                        {{ product.quantity }} шт ({{ product.weight|round }}{{ product.weight_unit }})
+                      </div>
+                      <br>
+                      <button style="margin-top: 15px;" class="order-btn" onclick="cart.add('{{ product.product_id }}');">Купить</button>
                     </div>
-                    <button class="order-btn" onclick="cart.add('{{ product.product_id }}');">Купить</button>
                   </div>
                 {% endfor %}
               </div>
@@ -268,6 +273,7 @@
                 <br>
                 <span>№ {{ order.order_id }}</span>
               </span>
+              <span>{{ order.shipping_method }}</span>
             </div>
           </div>
 

@@ -122,8 +122,10 @@ class ControllerAccountOrder extends Controller {
                     $products[$k]['thumb'] = $this->model_tool_image->resize('placeholder.png', 100, 100);;
                 }
             }
+
 			$voucher_total = $this->model_account_order->getTotalOrderVouchersByOrderId($result['order_id']);
 
+			$order_info = $this->model_account_order->getOrder($result['order_id']);
 
 			$data['orders'][] = array(
 				'order_id'   => $result['order_id'],
@@ -131,6 +133,7 @@ class ControllerAccountOrder extends Controller {
 				'status'     => $result['status'],
 				'date_added' => date('d', strtotime($result['date_added'])) . ' ' . $this->language->get(date('M', strtotime($result['date_added']))) . ' ' . date('Y', strtotime($result['date_added'])),
 				'products'   => $products,
+				'shipping_method' => $order_info['shipping_method'],
 				'delivery_rating' => $result['delivery_rating'],
 				'total'      => $this->currency->format($result['total'], $result['currency_code'], $result['currency_value']),
 				'view'       => $this->url->link('account/order/info', 'order_id=' . $result['order_id'], true),
@@ -261,6 +264,10 @@ class ControllerAccountOrder extends Controller {
 			$data['order_id'] = $this->request->get['order_id'];
 			$data['date_added'] = date($this->language->get('date_format_short'), strtotime($order_info['date_added']));
 
+			$data['text_order_info_heading'] = sprintf($this->language->get('text_order_info_heading'), date('d', strtotime($order_info['date_added'])) . ' ' . $this->language->get(date('M', strtotime($order_info['date_added']))) . ' ' . date('Y', strtotime($order_info['date_added'])), $order_info['order_id']);
+
+			$data['recipient'] = $order_info['lastname'] . ' ' . $order_info['firstname'] . ', ' . $order_info['telephone'];
+
 			if ($order_info['payment_address_format']) {
 				$format = $order_info['payment_address_format'];
 			} else {
@@ -370,11 +377,10 @@ class ControllerAccountOrder extends Controller {
 
 				$product_info = $this->model_account_order->getProductInfo($product['product_id']);
 
-//				echo "<pre>";
-//				print_r($product_info);
-//				echo "</pre>";
 
-                $data['products_weight_total'] += $product_info['weight'] / $product_info['multiply'];
+				$order_product_info = $this->model_account_order->getOrderProductByProductId($this->request->get['order_id'], $product['product_id']);
+
+                $data['products_weight_total'] += ($product_info['weight'] / $product_info['multiply']) * $order_product_info['quantity'];
 
 				if ($product_info) {
 					$reorder = $this->url->link('account/order/reorder', 'order_id=' . $order_id . '&order_product_id=' . $product['order_product_id'], true);
@@ -420,7 +426,8 @@ class ControllerAccountOrder extends Controller {
 			$totals = $this->model_account_order->getOrderTotals($this->request->get['order_id']);
 
 			foreach ($totals as $total) {
-				$data['totals'][] = array(
+				$data['totals'][$total['code']] = array(
+				    'code'  => $total['code'],
 					'title' => $total['title'],
 					'text'  => $this->currency->format($total['value'], $order_info['currency_code'], $order_info['currency_value']),
 				);
@@ -441,19 +448,13 @@ class ControllerAccountOrder extends Controller {
 				);
 			}
 
-//			echo "<pre>";
-//			print_r($order_info);
-//			echo "</pre>";
-
-			$data['order_id'] = $this->request->get['order_id'];
-
 			$data['actionReturn'] = $this->url->link('account/order/addReturn', 'order_id=' . $order_id, true);
 
             $this->load->model('localisation/return_reason');
 
             $data['return_reasons'] = $this->model_localisation_return_reason->getReturnReasons();
 
-			$data['continue'] = $this->url->link('account/order', '', true);
+            $data['continue'] = $this->url->link('account/order', '', true);
 
 			$data['column_left'] = $this->load->controller('common/column_left');
 			$data['column_right'] = $this->load->controller('common/column_right');
@@ -639,6 +640,7 @@ class ControllerAccountOrder extends Controller {
 
             $return = array(
                 'order_id'   => $order_info['order_id'],
+                'product_id'   => $this->request->post['product_id'],
                 'firstname'  => $order_info['firstname'],
                 'lastname'   => $order_info['lastname'],
                 'email'      => $order_info['email'],

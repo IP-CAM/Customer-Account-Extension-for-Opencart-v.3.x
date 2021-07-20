@@ -1,0 +1,108 @@
+{{ header }}
+<style>
+  .return-block {
+    border: 1px solid #C7DDE6;
+    box-sizing: border-box;
+    border-radius: 5px;
+    padding: 20px;
+  }
+  .return-block-heading, .return-block-body {
+    display: flex;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #E5F1F6;
+  }
+  .return-block-heading-right {
+    display: flex;
+  }
+  .return-block-body {
+    padding-top: 15px;
+  }
+  .return-block-heading-left, .return-block-heading-right, .return-block-body-left, .return-block-body-right {
+    width: 50%;
+  }
+  .return-block-body-right {
+    display: flex;
+    align-items: center;
+  }
+  .return-block-footer {
+    display: flex;
+    padding-top: 15px;
+  }
+</style>
+<div id="account-return" class="container">
+  <ul class="breadcrumb">
+    {% for breadcrumb in breadcrumbs %}
+    <li><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+    {% endfor %}
+  </ul>
+  <div class="row">{{ column_left }}
+    {% if column_left and column_right %}
+    {% set class = 'col-sm-6' %}
+    {% elseif column_left or column_right %}
+    {% set class = 'col-sm-9' %}
+    {% else %}
+    {% set class = 'col-sm-12' %}
+    {% endif %}
+    <div id="content" class="{{ class }}">{{ content_top }}
+      <h1>{{ heading_title }}</h1>
+      {% if returns %}
+        {% for return in returns %}
+          <div class="return-block">
+            <div class="return-block-heading">
+              <div class="return-block-heading-left">
+                <span>Возврат от {{ return.date_added }}</span>
+                <br>
+                <span>№ {{ return.order_id }}</span>
+              </div>
+              <div class="return-block-heading-right">
+                <span>
+                  <span>Сумма возврата</span>
+                  <br>
+                  <span>{{ return.product.price }}</span>
+                </span>
+                <span style="margin-left: 20px;">{{ return.status }}</span>
+              </div>
+            </div>
+            <div class="return-block-body">
+              <div class="return-block-body-left">
+                <span>Способ возврата</span>
+                <br>
+                <span>Через постомат</span>
+              </div>
+              <div class="return-block-body-right">
+                <img src="{{ return.product.thumb }}" alt="">
+                <span>
+                  <span>{{ return.product.name }}</span>
+                  <br>
+                  <span>1 шт ({{ return.product.weight|round }}{{ return.product.weight_unit }})</span>
+                </span>
+              </div>
+            </div>
+            <div class="return-block-footer">
+              <div class="return-block-footer-left">
+                <span>Как добраться</span>
+                <br>
+                <span>Почтомат OZON Box расположен в магазине "Дикси".</span>
+              </div>
+              <div class="return-block-footer-right"></div>
+            </div>
+          </div>
+{#          <tr>#}
+{#            <td class="text-right">#{{ return.return_id }}</td>#}
+{#            <td class="text-left">{{ return.status }}</td>#}
+{#            <td class="text-left">{{ return.date_added }}</td>#}
+{#            <td class="text-right">{{ return.order_id }}</td>#}
+{#            <td class="text-left">{{ return.name }}</td>#}
+{#            <td class="text-right"><a href="{{ return.href }}" data-toggle="tooltip" title="{{ button_view }}" class="btn btn-info"><i class="fa fa-eye"></i></a></td>#}
+{#          </tr>#}
+        {% endfor %}
+      {% else %}
+      <p>{{ text_empty }}</p>
+      {% endif %}
+
+      {{ content_bottom }}
+    </div>
+    {{ column_right }}
+  </div>
+</div>
+{{ footer }} 

@@ -188,6 +188,33 @@
   #uploaded-files a {
     color: #1bacbf;
   }
+  .order-status {
+    position: relative;
+  }
+  .order-status-history {
+    visibility: hidden;
+    width: fit-content;
+    background-color: white;
+    color: black;
+    text-align: center;
+    padding: 10px 5px;
+    border: 1px solid #C7DDE6;
+    box-sizing: border-box;
+    border-radius: 5px;
+    position: absolute;
+    z-index: 1;
+    top: 100%;
+    left: 25%;
+    margin-left: -60px;
+  }
+  .order-status:hover .order-status-history {
+    visibility: visible;
+  }
+  .order-status-history-item {
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+  }
 </style>
 <div id="account-order" class="container">
   <ul class="breadcrumb">
@@ -236,11 +263,26 @@
           <div class="order-block">
             <a href="{{ order.view }}" class="order-block-header">
               <div class="order-block-header-left">
-                <span>{{ order.status }}</span><br>
+                <div class="order-status">
+                  <span class="order-status-main">{{ order.status }}</span>
+                  <div class="order-status-history">
+                    {% for history in order.histories %}
+                      <div class="order-status-history-item">
+                        <span style="font-weight: 500; font-size: 14px; line-height: 25px;">{{ history.status }}</span>
+                        <span style="font-weight: 500; font-size: 12px; line-height: 14px; color: #8BA1AA;">{{ history.comment }}</span>
+                      </div>
+                    {% endfor %}
+                  </div>
+                </div>
+                <br>
                 <span>Адрес: ул. Заставская 21к1</span>
               </div>
               <div class="order-block-header-right">
                 <span><b>{{ order.total }}</b></span>
+                <br>
+                <span>{{ order.payment_method }}</span>
+                <br>
+                <span>Вы получите <b>{{ order.reward }} кешбека</b></span>
               </div>
             </a>
             <div class="order-block-body">
@@ -368,6 +410,11 @@
       {{ content_bottom }}</div>
     {{ column_right }}</div>
 </div>
+<script>
+  $('.order-status-main').on('mouseover', function () {
+
+  })
+</script>
 <script>
   $('#sendDeliveryReview').on('click', function () {
       let f = $('#form-delivery-review').serializeArray()

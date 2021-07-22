@@ -106,8 +106,11 @@ class ControllerAccountOrder extends Controller {
         $this->load->model('tool/image');
 
 		foreach ($results as $result) {
+		    $order_reward = 0;
 			$product_total = $this->model_account_order->getTotalOrderProductsByOrderId($result['order_id']);
 			$products = $this->model_account_order->getOrderProducts($result['order_id']);
+
+			$order_histories = $this->model_account_order->getOrderHistories($result['order_id']);
 
 			foreach ($products as $k => $product) {
 			    $product_info = $this->model_account_order->getProductInfo($product['product_id']);
@@ -121,6 +124,8 @@ class ControllerAccountOrder extends Controller {
                 } else {
                     $products[$k]['thumb'] = $this->model_tool_image->resize('placeholder.png', 100, 100);;
                 }
+
+                $order_reward += (int)$product['reward'];
             }
 
 			$voucher_total = $this->model_account_order->getTotalOrderVouchersByOrderId($result['order_id']);
@@ -133,8 +138,11 @@ class ControllerAccountOrder extends Controller {
 				'status'     => $result['status'],
 				'date_added' => date('d', strtotime($result['date_added'])) . ' ' . $this->language->get(date('M', strtotime($result['date_added']))) . ' ' . date('Y', strtotime($result['date_added'])),
 				'products'   => $products,
+				'histories'  => $order_histories,
 				'shipping_method' => $order_info['shipping_method'],
+				'payment_method' => $order_info['payment_method'],
 				'delivery_rating' => $result['delivery_rating'],
+				'reward'     => $this->currency->format($order_reward, $result['currency_code'], $result['currency_value']),
 				'total'      => $this->currency->format($result['total'], $result['currency_code'], $result['currency_value']),
 				'view'       => $this->url->link('account/order/info', 'order_id=' . $result['order_id'], true),
 			);
@@ -350,6 +358,7 @@ class ControllerAccountOrder extends Controller {
 
 			$data['products_count'] = 0;
 			$data['products_weight_total'] = 0;
+			$data['order_reward'] = 0;
 
 			foreach ($products as $product) {
 				$option_data = array();
@@ -404,6 +413,8 @@ class ControllerAccountOrder extends Controller {
 					'reorder'  => $reorder,
 					'return'   => $this->url->link('account/return/add', 'order_id=' . $order_info['order_id'] . '&product_id=' . $product['product_id'], true)
 				);
+
+                $data['order_reward'] += $product['reward'];
 
                 $data['products_count']++;
 			}

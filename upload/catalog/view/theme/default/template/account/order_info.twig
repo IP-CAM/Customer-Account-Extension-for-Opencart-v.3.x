@@ -86,7 +86,8 @@
               {% endif %}
 
               <b>Доставка: </b><span>{{ totals.shipping.text }}</span> <br>
-              <b>Товаров ({{ products_count }}): </b><span>{{ totals.total.text }}</span> <br>
+              <b>Товаров ({{ products_count }}): </b><span>{{ totals.total.text }}</span> <br><br>
+              <span>За этот заказ вы получили <b>{{ order_reward }} кешбека</b></span>
 {#              {% for total in totals %}#}
 {#                {% if total.code == 'shipping' %}#}
 {#                  <b>Доставка: </b><span>{{ total.text }}</span> <br>#}

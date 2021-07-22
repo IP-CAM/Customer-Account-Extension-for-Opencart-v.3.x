@@ -19,8 +19,8 @@ $_['entry_delivery_address'] = 'Адрес доставки';
 $_['entry_address']      = 'Адрес';
 $_['entry_recipient_fio']= 'Имя получателя';
 $_['entry_recipient']    = 'Получатель';
-$_['entry_fio']              = 'ФИО';
-$_['entry_fio_full']         = 'Имя Фамилия Отчество';
+$_['entry_fio']          = 'ФИО';
+$_['entry_fio_full']     = 'Имя Фамилия Отчество';
 
 // Error
 $_['error_exists']       = 'Данный E-Mail уже зарегистрирован!';

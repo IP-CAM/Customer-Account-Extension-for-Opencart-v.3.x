@@ -56,6 +56,7 @@ class ControllerAccountReturn extends Controller {
 		foreach ($results as $result) {
             $product_info = $this->model_account_order->getProductInfo($result['product_id']);
             $order_info = $this->model_account_order->getOrderInfo($result['order_id']);
+            $order_product_info = $this->model_account_order->getOrderProductByProductId($result['order_id'], $result['product_id']);
 
             if ($product_info['image']) {
                 $product_info['thumb'] = $this->model_tool_image->resize($product_info['image'], 100, 100);
@@ -72,6 +73,7 @@ class ControllerAccountReturn extends Controller {
 				'order_id'   => $result['order_id'],
 				'name'       => $result['firstname'] . ' ' . $result['lastname'],
 				'product'    => $product_info,
+				'quantity'   => $order_product_info['quantity'],
 				'status'     => $result['status'],
 				'date_added' => date('d', strtotime($result['date_added'])) . ' ' . $this->language->get(date('M', strtotime($result['date_added']))) . ' ' . date('Y', strtotime($result['date_added'])),
 				'href'       => $this->url->link('account/return/info', 'return_id=' . $result['return_id'] . $url, true)

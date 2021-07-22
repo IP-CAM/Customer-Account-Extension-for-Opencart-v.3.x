@@ -22,8 +22,15 @@ class ControllerAccountEdit extends Controller {
 		$this->load->model('extension/module/customer_info');
 
 		if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validate()) {
-			$this->model_account_customer->editCustomer($this->customer->getId(), $this->request->post);
-			$this->model_extension_module_customer_info->saveCustomerInfo($this->customer->getId(), $this->request->post);
+            $post = $this->request->post;
+
+            $customer_fio = explode(' ', trim($this->request->post['customer_fio']));
+
+            $post['firstname'] = trim($customer_fio[0] . (isset($customer_fio[2]) ? ' ' . $customer_fio[2] : ''));
+            $post['lastname'] = trim($customer_fio[1]);
+
+			$this->model_account_customer->editCustomer($this->customer->getId(), $post);
+			$this->model_extension_module_customer_info->saveCustomerInfo($this->customer->getId(), $post);
 
 			$this->session->data['success'] = $this->language->get('text_success');
 
@@ -53,16 +60,10 @@ class ControllerAccountEdit extends Controller {
 			$data['error_warning'] = '';
 		}
 
-		if (isset($this->error['firstname'])) {
-			$data['error_firstname'] = $this->error['firstname'];
+		if (isset($this->error['customer_fio'])) {
+			$data['error_customer_fio'] = $this->error['customer_fio'];
 		} else {
-			$data['error_firstname'] = '';
-		}
-
-		if (isset($this->error['lastname'])) {
-			$data['error_lastname'] = $this->error['lastname'];
-		} else {
-			$data['error_lastname'] = '';
+			$data['error_customer_fio'] = '';
 		}
 
 		if (isset($this->error['email'])) {
@@ -90,20 +91,13 @@ class ControllerAccountEdit extends Controller {
 			$customer_additional_info = $this->model_extension_module_customer_info->getCustomerInfo($this->customer->getId());
 		}
 
-		if (isset($this->request->post['firstname'])) {
-			$data['firstname'] = $this->request->post['firstname'];
+		if (isset($this->request->post['customer_fio'])) {
+			$data['customer_fio'] = $this->request->post['customer_fio'];
 		} elseif (!empty($customer_info)) {
-			$data['firstname'] = $customer_info['firstname'];
+		    $firstname = explode(' ', $customer_info['firstname']);
+			$data['customer_fio'] = $firstname[0] . ' ' . $customer_info['lastname'] . ' ' . $firstname[1];
 		} else {
-			$data['firstname'] = '';
-		}
-
-		if (isset($this->request->post['lastname'])) {
-			$data['lastname'] = $this->request->post['lastname'];
-		} elseif (!empty($customer_info)) {
-			$data['lastname'] = $customer_info['lastname'];
-		} else {
-			$data['lastname'] = '';
+			$data['customer_fio'] = '';
 		}
 
 		if (isset($this->request->post['email'])) {
@@ -188,12 +182,8 @@ class ControllerAccountEdit extends Controller {
 	}
 
 	protected function validate() {
-		if ((utf8_strlen(trim($this->request->post['firstname'])) < 1) || (utf8_strlen(trim($this->request->post['firstname'])) > 32)) {
+		if ((utf8_strlen(trim($this->request->post['customer_fio'])) < 1) || (utf8_strlen(trim($this->request->post['customer_fio'])) > 32)) {
 			$this->error['firstname'] = $this->language->get('error_firstname');
-		}
-
-		if ((utf8_strlen(trim($this->request->post['lastname'])) < 1) || (utf8_strlen(trim($this->request->post['lastname'])) > 32)) {
-			$this->error['lastname'] = $this->language->get('error_lastname');
 		}
 
 		if ((utf8_strlen($this->request->post['email']) > 96) || !filter_var($this->request->post['email'], FILTER_VALIDATE_EMAIL)) {

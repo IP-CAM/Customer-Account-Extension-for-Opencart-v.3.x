@@ -25,4 +25,8 @@ class ModelAccountSubscription extends Model {
             $this->db->query("INSERT INTO `" . DB_PREFIX . "customer_to_mailing` SET customer_id = '" . (int)$this->customer->getId() . "', mailing_category_id = '" . (int)$data['mailing_category_id'] . "'");
         }
     }
+
+    public function unsubscribeFromAll() {
+        $this->db->query("DELETE FROM `" . DB_PREFIX . "customer_to_mailing` WHERE customer_id = '" . (int)$this->customer->getId() . "'");
+    }
 }

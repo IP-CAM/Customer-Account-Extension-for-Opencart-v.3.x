@@ -67,4 +67,12 @@ class ControllerAccountSubscription extends Controller {
             $this->model_account_subscription->changeSubscriberStatus($this->request->get);
         }
     }
+
+    public function unsubscribeFromAll() {
+        $this->load->model('account/subscription');
+
+        if (($this->request->server['REQUEST_METHOD'] == 'POST') ) {
+            $this->model_account_subscription->unsubscribeFromAll();
+        }
+    }
 }

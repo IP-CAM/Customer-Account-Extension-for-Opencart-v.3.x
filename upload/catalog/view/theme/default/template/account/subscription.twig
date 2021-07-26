@@ -58,7 +58,7 @@
           </form>
         </div>
         <div class="mailing-block-footer">
-          <button type="submit" form="form-mailing">{{ button_cancel_subscription }}</button>
+          <button type="button" id="unsubscribe-from-all-btn">{{ button_cancel_subscription }}</button>
         </div>
       </div>
 
@@ -117,6 +117,26 @@
             }
         },
     });
+  })
+</script>
+<script>
+  $('#unsubscribe-from-all-btn').on('click', function () {
+      let that = $(this)
+      $.ajax({
+          url: 'index.php?route=account/subscription/unsubscribeFromAll',
+          type: 'post',
+          beforeSend: function() {
+              $('input[name="mailing_category"]').attr('disabled', true)
+              that.attr('disabled', true)
+          },
+          complete: function() {
+              $('input[name="mailing_category"]').attr('disabled', false)
+              that.attr('disabled', false)
+          },
+          success: function() {
+              $('input[name="mailing_category"]').prop('checked', false)
+          },
+      });
   })
 </script>
 <script>

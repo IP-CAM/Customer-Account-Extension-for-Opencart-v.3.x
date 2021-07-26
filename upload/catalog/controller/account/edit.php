@@ -95,7 +95,7 @@ class ControllerAccountEdit extends Controller {
 			$data['customer_fio'] = $this->request->post['customer_fio'];
 		} elseif (!empty($customer_info)) {
 		    $firstname = explode(' ', $customer_info['firstname']);
-			$data['customer_fio'] = $firstname[0] . ' ' . $customer_info['lastname'] . ' ' . $firstname[1];
+			$data['customer_fio'] = (isset($firstname[0]) ? $firstname[0] : '') . ' ' . $customer_info['lastname'] . ' ' . (isset($firstname[1]) ? $firstname[1] : '');
 		} else {
 			$data['customer_fio'] = '';
 		}

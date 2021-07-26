@@ -80,44 +80,47 @@
     {% set class = 'col-sm-12' %}
     {% endif %}
     <div id="content" class="{{ class }}">{{ content_top }}
-      <h1>{{ text_products_waiting_rating }}</h1>
-      <div class="row">
-        <div class="swiper-viewport">
-          <div id="products-waiting-rating" class="swiper-container">
-            <div class="swiper-wrapper">
-              {% for product in products_waiting_rating %}
-                <div class="swiper-slide product-layout col-lg-5 col-md-5 col-sm-6 col-xs-12">
-                  <div class="products-waiting-rating-card">
-                    <div class="products-waiting-rating-card-top">
-                      <img src="{{ product.thumb }}" alt="">
-                      <p style="display: flex; flex-direction: column;">
-                        <span>{{ product.name }}</span>
-                        <span>{{ product.quantity }} шт ({{ product.total_weight }}{{ product.weight_unit }})</span>
-                      </p>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                      <a href="{{ product.link }}" class="products-waiting-rating-card-link">Написать отзыв</a>
-                      <a href="#" class="products-waiting-rating-card-link2">Не оценивать</a>
+
+      {% if count_products_without_review %}
+        <h1>{{ text_products_waiting_rating }}</h1>
+        <div class="row">
+          <div class="swiper-viewport">
+            <div id="products-waiting-rating" class="swiper-container">
+              <div class="swiper-wrapper">
+                {% for product in products_waiting_rating %}
+                  <div class="swiper-slide product-layout col-lg-5 col-md-5 col-sm-6 col-xs-12">
+                    <div class="products-waiting-rating-card">
+                      <div class="products-waiting-rating-card-top">
+                        <img src="{{ product.thumb }}" alt="">
+                        <p style="display: flex; flex-direction: column;">
+                          <span>{{ product.name }}</span>
+                          <span>{{ product.quantity }} шт ({{ product.total_weight }}{{ product.weight_unit }})</span>
+                        </p>
+                      </div>
+                      <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <a href="{{ product.link }}" class="products-waiting-rating-card-link">Написать отзыв</a>
+                        <a href="#" class="products-waiting-rating-card-link2">Не оценивать</a>
+                      </div>
                     </div>
                   </div>
-                </div>
-              {% endfor %}
+                {% endfor %}
+              </div>
             </div>
+            <div class="swiper-pager">
+              <div class="swiper-button-next"></div>
+              <div class="swiper-button-prev"></div>
+            </div>
+            <script type="text/javascript">
+                $('#products-waiting-rating').swiper({
+                    mode: 'horizontal',
+                    slidesPerView: 3,
+                    nextButton: '.swiper-button-next',
+                    prevButton: '.swiper-button-prev',
+                });
+            </script>
           </div>
-          <div class="swiper-pager">
-            <div class="swiper-button-next"></div>
-            <div class="swiper-button-prev"></div>
-          </div>
-          <script type="text/javascript">
-              $('#products-waiting-rating').swiper({
-                  mode: 'horizontal',
-                  slidesPerView: 3,
-                  nextButton: '.swiper-button-next',
-                  prevButton: '.swiper-button-prev',
-              });
-          </script>
         </div>
-      </div>
+      {% endif %}
 
       <div class="reviews-blocks-header">
         <h2>{{ heading_title }}</h2>

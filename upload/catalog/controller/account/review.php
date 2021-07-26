@@ -107,6 +107,8 @@ class ControllerAccountReview extends Controller {
             $data['text_products_waiting_rating'] = sprintf($this->language->get('text_products_waiting_rating_5'), count($products_without_review));
         }
 
+        $data['count_products_without_review'] = count($products_without_review);
+
         $data['products_waiting_rating'] = array();
 
 

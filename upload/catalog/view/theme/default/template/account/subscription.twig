@@ -45,53 +45,80 @@
 
       <div class="mailing-block">
         <div class="mailing-block-header">
-          <h4>Рассылки</h4>
+          <h4>{{ text_mailings }}</h4>
         </div>
         <div class="mailing-block-body">
           <form action="{{ actionMailings }}" id="form-mailing" method="post" enctype="multipart/form-data">
-            {% for mailing in mailings %}
+            {% for mailing_category in mailing_categories %}
               <div>
-                <input type="checkbox" id="{{ mailing.value }}" name="{{ mailing.value }}" {% if mailing.checked %}checked{% endif %}>
-                <label for="{{ mailing.value }}">{{ mailing.name }}</label>
+                <input type="checkbox" id="mailing-category-{{ mailing_category.mailing_category_id }}" name="mailing_category" value="{{ mailing_category.mailing_category_id }}" {% if mailing_category.subscriber %}checked{% endif %}>
+                <label for="mailing-category-{{ mailing_category.mailing_category_id }}">{{ mailing_category.name }}</label>
               </div>
             {% endfor %}
           </form>
         </div>
         <div class="mailing-block-footer">
-          <button type="submit" form="form-mailing">Отменить подписку</button>
+          <button type="submit" form="form-mailing">{{ button_cancel_subscription }}</button>
         </div>
       </div>
 
-      <div class="mailing-block">
-        <div class="mailing-block-header">
-          <h4>Персональные рассылки</h4>
-        </div>
-        <div class="mailing-block-body">
-          <form action="{{ actionPersonalMailings }}" id="form-personal-mailing" method="post" enctype="multipart/form-data">
-            {% for mailing in personal_mailings %}
-              <div class="parent-checkbox-container">
-                <div class="parent-checkbox">
-                  <input type="checkbox" id="{{ mailing.value }}" name="{{ mailing.value }}" {% if mailing.checked %}checked{% endif %}>
-                  <label for="{{ mailing.value }}">{{ mailing.name }}</label>
-                </div>
-                {% for children in mailing.children %}
-                  <div style="margin-left: 20px;">
-                    <input type="checkbox" id="{{ children.value }}" name="{{ children.value }}" {% if children.checked %}checked{% endif %}>
-                    <label for="{{ children.value }}">{{ children.name }}</label>
-                  </div>
-                {% endfor %}
-              </div>
-            {% endfor %}
-          </form>
-        </div>
-        <div class="mailing-block-footer">
-          <button type="submit" form="form-personal-mailing">Отменить подписку</button>
-        </div>
-      </div>
+{#      <div class="mailing-block">#}
+{#        <div class="mailing-block-header">#}
+{#          <h4>Персональные рассылки</h4>#}
+{#        </div>#}
+{#        <div class="mailing-block-body">#}
+{#          <form action="{{ actionPersonalMailings }}" id="form-personal-mailing" method="post" enctype="multipart/form-data">#}
+{#            {% for mailing in personal_mailings %}#}
+{#              <div class="parent-checkbox-container">#}
+{#                <div class="parent-checkbox">#}
+{#                  <input type="checkbox" id="{{ mailing.value }}" name="{{ mailing.value }}" {% if mailing.checked %}checked{% endif %}>#}
+{#                  <label for="{{ mailing.value }}">{{ mailing.name }}</label>#}
+{#                </div>#}
+{#                {% for children in mailing.children %}#}
+{#                  <div style="margin-left: 20px;">#}
+{#                    <input type="checkbox" id="{{ children.value }}" name="{{ children.value }}" {% if children.checked %}checked{% endif %}>#}
+{#                    <label for="{{ children.value }}">{{ children.name }}</label>#}
+{#                  </div>#}
+{#                {% endfor %}#}
+{#              </div>#}
+{#            {% endfor %}#}
+{#          </form>#}
+{#        </div>#}
+{#        <div class="mailing-block-footer">#}
+{#          <button type="submit" form="form-personal-mailing">Отменить подписку</button>#}
+{#        </div>#}
+{#      </div>#}
 
       {{ content_bottom }}</div>
     {{ column_right }}</div>
 </div>
+<script>
+  $('input[name="mailing_category"]').on('click', function () {
+    let that = $(this)
+
+    let mailingCategoryId = that.val();
+    let mailingCategoryStatus = that.prop('checked')
+
+    $.ajax({
+        url: 'index.php?route=account/subscription/subscribe&mailing_category_id=' + mailingCategoryId + '&status=' + (mailingCategoryStatus ? 1 : 0),
+        type: 'post',
+        beforeSend: function() {
+            that.attr('disabled', true)
+        },
+        complete: function() {
+            that.attr('disabled', false)
+        },
+        success: function() {
+            mailingCategoryStatus = !mailingCategoryStatus
+            if (mailingCategoryStatus) {
+                that.prop('checked', false)
+            } else {
+                that.prop('checked', true)
+            }
+        },
+    });
+  })
+</script>
 <script>
   $('.parent-checkbox-container .parent-checkbox input[type="checkbox"]').on('click', function () {
     let parent = $(this).parents('.parent-checkbox-container');

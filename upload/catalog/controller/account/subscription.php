@@ -34,52 +34,18 @@ class ControllerAccountSubscription extends Controller {
 
         $this->load->model('account/subscription');
 
-        $mailings = $this->model_account_subscription->getSubscriptionOnMailings();
-        $personalMailings = $this->model_account_subscription->getSubscriptionOnPersonalMailings();
+        $data['mailing_categories'] = array();
 
-		$data['mailings'] = array(
-		    array(
-                'name'    => $this->language->get('text_mailing_news'),
-		        'value'   => 'mailing_news',
-                'checked' => (isset($mailings['mailing_news']) ? $mailings['mailing_news'] : false),
-            ),
-            array(
-                'name'  => $this->language->get('text_mailing_special'),
-                'value' => 'mailing_special',
-                'checked' => (isset($mailings['mailing_special']) ? $mailings['mailing_special'] : false),
-            ),
-            array(
-                'name'  => $this->language->get('text_mailing_for_business'),
-                'value' => 'mailing_for_business',
-                'checked' => (isset($mailings['mailing_for_business']) ? $mailings['mailing_for_business'] : false),
-            ),
-        );
+        $mailing_categories = $this->model_account_subscription->getMailingCategories();
 
-		$categories = array();
-
-		$results = $this->model_account_subscription->getCategories();
-
-        foreach ($results as $result) {
-            $categories[] = array(
-                'name'    => $result['name'],
-                'value'   => $result['category_id'],
-                'checked' => (isset($personalMailings[$result['category_id']]) ? $personalMailings[$result['category_id']] : false),
+        foreach ($mailing_categories as $mailing_category) {
+            $subs = $this->model_account_subscription->getMailingCategoryCustomer($mailing_category['mailing_category_id']);
+            $data['mailing_categories'][] = array(
+                'mailing_category_id' => $mailing_category['mailing_category_id'],
+                'name'                => $mailing_category['name'],
+                'subscriber'          => !empty($subs)
             );
-		}
-
-        $data['personal_mailings'] = array(
-            array(
-                'name'    => $this->language->get('text_interesting_products_available_now'),
-                'value'   => 'interesting_products_available_now',
-                'checked' => (isset($personalMailings['interesting_products_available_now']) ? $personalMailings['interesting_products_available_now'] : false),
-            ),
-            array(
-                'name'     => $this->language->get('text_new_products_in_category'),
-                'value'    => 'new_products_in_category',
-                'checked'  => (isset($personalMailings['new_products_in_category']) ? $personalMailings['new_products_in_category'] : false),
-                'children' => $categories
-            ),
-        );
+        }
 
         $data['actionMailings'] = $this->url->link('account/subscription/saveMailings');
         $data['actionPersonalMailings'] = $this->url->link('account/subscription/savePersonalMailings');
@@ -94,27 +60,11 @@ class ControllerAccountSubscription extends Controller {
 		$this->response->setOutput($this->load->view('account/subscription', $data));
 	}
 
-	public function saveMailings() {
+	public function subscribe() {
         $this->load->model('account/subscription');
 
         if (($this->request->server['REQUEST_METHOD'] == 'POST') ) { //&& $this->validateForm()) {
-            $this->model_account_subscription->saveSubscriptionOnMailings($this->request->post);
-
-            $this->response->redirect($this->url->link('account/subscription'));
+            $this->model_account_subscription->changeSubscriberStatus($this->request->get);
         }
-
-        $this->index();
-    }
-
-	public function savePersonalMailings() {
-        $this->load->model('account/subscription');
-
-        if (($this->request->server['REQUEST_METHOD'] == 'POST') ) { //&& $this->validateForm()) {
-            $this->model_account_subscription->saveSubscriptionOnPersonalMailings($this->request->post);
-
-            $this->response->redirect($this->url->link('account/subscription'));
-        }
-
-        $this->index();
     }
 }

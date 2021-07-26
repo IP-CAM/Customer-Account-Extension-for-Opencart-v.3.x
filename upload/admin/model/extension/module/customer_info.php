@@ -12,14 +12,6 @@ class ModelExtensionModuleCustomerInfo extends Model {
             ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 		");
         $this->db->query("
-            CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "customer_mailings` (
-              `customer_id` INT(11) NOT NULL,
-              `mailings` TEXT NOT NULL,
-              `personal_mailings` TEXT NOT NULL,
-              PRIMARY KEY (`customer_id`)
-            ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
-		");
-        $this->db->query("
             CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "customer_voucher` (
               `id` INT(11) NOT NULL AUTO_INCREMENT,
               `customer_id` INT(11) NOT NULL,

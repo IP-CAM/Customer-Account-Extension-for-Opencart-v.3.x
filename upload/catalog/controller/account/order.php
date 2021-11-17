@@ -657,7 +657,7 @@ class ControllerAccountOrder extends Controller {
                 'email'      => $order_info['email'],
                 'telephone'  => $order_info['order_id'],
                 'product'    => $product_info['name'],
-                'model'      => $product_info['model'],
+                'model'      => isset($product_info['model']) ? $product_info['model'] : '',
                 'quantity'   => 1,
                 'comment'    => $this->request->post['comment'],
                 'opened'     => 0,

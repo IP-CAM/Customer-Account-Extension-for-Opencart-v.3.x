@@ -27,7 +27,7 @@ class ControllerAccountEdit extends Controller {
             $customer_fio = explode(' ', trim($this->request->post['customer_fio']));
 
             $post['firstname'] = trim($customer_fio[0] . (isset($customer_fio[2]) ? ' ' . $customer_fio[2] : ''));
-            $post['lastname'] = trim($customer_fio[1]);
+            $post['lastname'] = isset($customer_fio[1]) ? trim($customer_fio[1]) : '';
 
 			$this->model_account_customer->editCustomer($this->customer->getId(), $post);
 			$this->model_extension_module_customer_info->saveCustomerInfo($this->customer->getId(), $post);
